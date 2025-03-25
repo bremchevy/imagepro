@@ -17,40 +17,8 @@ export default function BackgroundRemovalPage() {
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      setResultUrl(null);
-    }
-  };
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      setSelectedImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      setResultUrl(null);
-    }
-  };
-
-  const handleProcess = async () => {
-    if (!selectedImage) return;
+  const handleProcess = async (file: File) => {
+    if (!file) return;
 
     setIsProcessing(true);
     setProgress(0);
@@ -70,9 +38,43 @@ export default function BackgroundRemovalPage() {
     try {
       // TODO: Implement actual background removal API call
       await new Promise(resolve => setTimeout(resolve, 5000));
-      setResultUrl(previewUrl);
+      setResultUrl(URL.createObjectURL(file));
     } catch (error) {
       console.error('Error processing image:', error);
+    }
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setResultUrl(null);
+      await handleProcess(file);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      setSelectedImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setResultUrl(null);
+      await handleProcess(file);
     }
   };
 
@@ -95,7 +97,7 @@ export default function BackgroundRemovalPage() {
                 Upload Image
               </CardTitle>
               <CardDescription>
-                Drag and drop your image or click to browse
+                Drag and drop your image or click to browse. Processing will start automatically.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -103,7 +105,7 @@ export default function BackgroundRemovalPage() {
                 <div
                   className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                     dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
-                  }`}
+                  } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
                   onDragOver={handleDrag}
@@ -119,12 +121,25 @@ export default function BackgroundRemovalPage() {
                   />
                   <Label
                     htmlFor="image"
-                    className="cursor-pointer flex flex-col items-center gap-2"
+                    className={`cursor-pointer flex flex-col items-center gap-2 ${
+                      isProcessing ? 'cursor-not-allowed' : ''
+                    }`}
                   >
-                    <Upload className="h-8 w-8 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      {selectedImage ? selectedImage.name : 'Click to upload or drag and drop'}
-                    </span>
+                    {isProcessing ? (
+                      <>
+                        <RefreshCw className="h-8 w-8 text-muted-foreground animate-spin" />
+                        <span className="text-sm text-muted-foreground">
+                          Processing your image... {progress}%
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          {selectedImage ? selectedImage.name : 'Click to upload or drag and drop'}
+                        </span>
+                      </>
+                    )}
                   </Label>
                 </div>
 
@@ -193,20 +208,6 @@ export default function BackgroundRemovalPage() {
                           Download Result
                         </Button>
                       )}
-                      <Button
-                        onClick={handleProcess}
-                        disabled={!selectedImage || isProcessing}
-                        className="gap-2"
-                      >
-                        {isProcessing ? (
-                          <>
-                            <RefreshCw className="h-4 w-4 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          'Remove Background'
-                        )}
-                      </Button>
                     </div>
                   </div>
                 )}
