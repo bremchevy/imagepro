@@ -17,14 +17,14 @@ export default function VerifyEmail() {
         </div>
         <div className="flex flex-col space-y-4">
           <Button asChild>
-            <Link href="/auth/signin">
+            <Link href="/login">
               Return to sign in
             </Link>
           </Button>
           <p className="px-8 text-center text-sm text-muted-foreground">
             Didn&apos;t receive an email?{' '}
             <Link
-              href="/auth/signup"
+              href="/signup"
               className="hover:text-brand underline underline-offset-4"
             >
               Try again
@@ -34,4 +34,4 @@ export default function VerifyEmail() {
       </div>
     </div>
   )
-} 
+}

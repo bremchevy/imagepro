@@ -153,7 +153,7 @@ export default function ToolsPage() {
                   ))}
                 </ul>
                 <div className="mt-8">
-                  <Link href="/register">
+                  <Link href={tool.name === "Background Removal" ? "/tools/background-removal" : "/signup"}>
                     <Button className="btn-primary">Try {tool.name}</Button>
                   </Link>
                 </div>
@@ -168,7 +168,7 @@ export default function ToolsPage() {
               Sign up for a free account and start editing your images today.
             </p>
             <div className="mt-8">
-              <Link href="/register">
+              <Link href="/signup">
                 <Button className="btn-primary">Create Free Account</Button>
               </Link>
             </div>
@@ -195,4 +195,4 @@ export default function ToolsPage() {
       </footer>
     </div>
   );
-} 
+}

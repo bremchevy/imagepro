@@ -121,8 +121,8 @@ export default function AboutPage() {
               Be part of the future of image editing
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Link href="/register">
-                <Button className="btn-primary">Get Started</Button>
+              <Link href="/signup">
+                <Button className="btn-primary">Create Free Account</Button>
               </Link>
               <Link href="/contact">
                 <Button variant="outline" className="btn-secondary">
@@ -153,4 +153,4 @@ export default function AboutPage() {
       </footer>
     </div>
   );
-} 
+}

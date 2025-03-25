@@ -14,7 +14,7 @@ const tiers = [
       "Community support",
     ],
     cta: "Get Started",
-    href: "/register",
+    href: "/signup",
     popular: false,
   },
   {
@@ -30,7 +30,7 @@ const tiers = [
       "API access",
     ],
     cta: "Start Free Trial",
-    href: "/register",
+    href: "/signup",
     popular: true,
   },
   {
@@ -158,4 +158,4 @@ export default function PricingPage() {
       </footer>
     </div>
   );
-} 
+}

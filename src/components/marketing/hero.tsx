@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
 import { Image as ImageIcon, Download, Loader2 } from "lucide-react";
+import { SignUpDialog } from "@/components/auth/signup-dialog";
 
 export function Hero() {
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showSignUpDialog, setShowSignUpDialog] = useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -71,27 +73,31 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden py-20 sm:py-32">
+    <section className="relative overflow-hidden py-12 sm:py-24">
       <div className="container relative">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-2 lg:items-center">
           {/* Left side - Text content */}
-          <div className="flex flex-col justify-center">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
-              Upscale Your Images with{" "}
-              <span className="text-primary">AI</span>
-            </h1>
-            <p className="mt-6 text-lg leading-8 text-foreground/80">
-              Instantly enhance your image quality with our advanced AI upscaling technology. 
-              Get high-resolution results in seconds.
-            </p>
-            <div className="mt-10 flex items-center gap-x-6">
-              <Link href="/register">
-                <Button size="lg" className="rounded-full">
-                  Get Started Free
-                </Button>
-              </Link>
+          <div className="flex flex-col justify-center space-y-8">
+            <div className="space-y-4">
+              <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-7xl">
+                Transform Your Images with Our{" "}
+                <span className="text-primary">AI Tools</span>
+              </h1>
+              <p className="text-base leading-7 text-foreground/80 max-w-xl">
+                Professional image editing made simple. Remove backgrounds, upscale images, 
+                and enhance quality with our powerful AI-powered tools.
+              </p>
+            </div>
+            <div className="flex items-center gap-x-6">
+              <Button 
+                size="lg" 
+                className="rounded-full px-8"
+                onClick={() => setShowSignUpDialog(true)}
+              >
+                Get Started Free
+              </Button>
               <Link href="/tools">
-                <Button variant="outline" size="lg" className="rounded-full">
+                <Button variant="outline" size="lg" className="rounded-full px-8">
                   Explore Tools
                 </Button>
               </Link>
@@ -114,7 +120,7 @@ export function Hero() {
                     <div className="relative h-full w-full">
                       <img 
                         src={preview} 
-                        alt="Upscaled" 
+                        alt="Processed" 
                         className="h-full w-full object-cover"
                       />
                       {isProcessing && (
@@ -159,7 +165,7 @@ export function Hero() {
                 </div>
                 <div className="mt-6 flex flex-col items-center gap-4">
                   <div className="flex items-center justify-center gap-2 text-sm text-foreground/60">
-                    <span>AI will upscale your image automatically</span>
+                    <span>Try our AI-image upscaled tool</span>
                   </div>
                   {preview && !isProcessing && (
                     <Button 
@@ -177,6 +183,7 @@ export function Hero() {
           </div>
         </div>
       </div>
+      <SignUpDialog open={showSignUpDialog} onOpenChange={setShowSignUpDialog} />
     </section>
   );
 } 

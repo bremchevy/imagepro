@@ -10,13 +10,23 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // If user is not signed in and the current path is not /auth/*,
+  // List of paths that require authentication
+  const protectedPaths = ['/dashboard', '/dashboard/*', '/settings', '/profile', '/account', '/account/*']
+  const isProtectedPath = protectedPaths.some(path => {
+    if (path.endsWith('/*')) {
+      const basePath = path.slice(0, -2)
+      return req.nextUrl.pathname.startsWith(basePath)
+    }
+    return req.nextUrl.pathname === path
+  })
+
+  // If user is not signed in and trying to access a protected path,
   // redirect the user to /auth/signin
-  if (!session && !req.nextUrl.pathname.startsWith('/auth/')) {
-    return NextResponse.redirect(new URL('/auth/signin', req.url))
+  if (!session && isProtectedPath) {
+    return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  // If user is signed in and the current path is /auth/*,
+  // If user is signed in and trying to access auth pages,
   // redirect the user to /dashboard
   if (session && req.nextUrl.pathname.startsWith('/auth/')) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
@@ -26,5 +36,14 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
-} 
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+  ],
+}
