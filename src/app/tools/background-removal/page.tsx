@@ -4,10 +4,8 @@ import React, { useState, useCallback } from 'react';
 import { MarketingNav } from "@/components/marketing/nav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Upload, Image as ImageIcon, Download, RefreshCw } from "lucide-react";
+import { Upload, Image as ImageIcon, Download, RefreshCw, Wand2 } from "lucide-react";
 import { removeBackground } from '@/lib/services/background-removal';
 import toast from "react-hot-toast";
 
@@ -28,13 +26,13 @@ export default function BackgroundRemovalPage() {
 
     try {
       setProgress(30);
-      const resultUrl = await removeBackground(selectedImage);
+      const base64Image = await removeBackground(selectedImage);
       setProgress(100);
-      setResultUrl(resultUrl);
+      setResultUrl(base64Image);
       toast.success("Background removed successfully!", { id: "processing" });
     } catch (error) {
       console.error("Error processing image:", error);
-      toast.error("Failed to remove background. Please try again.", { id: "processing" });
+      toast.error(error instanceof Error ? error.message : "Failed to remove background. Please try again.", { id: "processing" });
       setProgress(0);
     } finally {
       setIsProcessing(false);
@@ -62,7 +60,7 @@ export default function BackgroundRemovalPage() {
       setPreviewUrl(URL.createObjectURL(file));
       setResultUrl(null);
     } else {
-      toast.error("Please upload an image file");
+      toast.error("Please upload a valid image file");
     }
   }, []);
 
@@ -95,118 +93,146 @@ export default function BackgroundRemovalPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-50 to-white">
       <MarketingNav />
       <main className="flex-1">
-        <div className="container py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">Background Removal</h1>
-            <p className="text-muted-foreground mt-2">
-              Remove backgrounds from your images instantly with AI-powered precision
+        <div className="container py-12">
+          <div className="mb-12 text-center">
+            <h1 className="text-4xl font-bold tracking-tight mb-4">Background Removal</h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Remove backgrounds from your images instantly with AI-powered precision. Perfect for product photos, portraits, and more.
             </p>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ImageIcon className="h-5 w-5" />
-                Upload Image
-              </CardTitle>
-              <CardDescription>
-                Drag and drop your image or click to browse. Processing will start automatically.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center ${
-                    dragActive ? "border-primary bg-primary/5" : "border-gray-300"
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="cursor-pointer flex flex-col items-center"
-                  >
-                    <Upload className="h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-gray-600">
-                      Drag and drop your image here, or click to select
-                    </p>
-                  </label>
-                </div>
-
-                {selectedImage && !resultUrl && (
-                  <div className="mt-6 flex justify-center">
-                    <Button 
-                      onClick={handleProcess}
-                      disabled={isProcessing}
-                      className="w-full md:w-auto"
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="border-2 hover:border-primary/50 transition-all duration-300 shadow-lg hover:shadow-xl">
+              <CardHeader className="space-y-2">
+                <CardTitle className="flex items-center gap-2 text-2xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  <ImageIcon className="h-7 w-7" />
+                  Original Image
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Upload your image here to get started
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {!selectedImage ? (
+                    <div
+                      className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
+                        dragActive 
+                          ? "border-primary bg-primary/5 scale-[1.02] shadow-lg" 
+                          : "border-gray-300 hover:border-primary/50 hover:bg-gray-50/50"
+                      }`}
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
                     >
-                      <ImageIcon className="h-4 w-4 mr-2" />
-                      Remove Background
-                    </Button>
-                  </div>
-                )}
-
-                {isProcessing && (
-                  <div className="mt-6">
-                    <Progress value={progress} className="mb-2" />
-                    <p className="text-sm text-gray-500 text-center">
-                      Processing image... {progress}%
-                    </p>
-                  </div>
-                )}
-
-                {previewUrl && resultUrl && (
-                  <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Original</h3>
-                      <img
-                        src={previewUrl}
-                        alt="Original"
-                        className="w-full rounded-lg shadow-md"
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="file-upload"
                       />
+                      <label
+                        htmlFor="file-upload"
+                        className="cursor-pointer flex flex-col items-center group"
+                      >
+                        <Upload className="h-14 w-14 text-gray-400 mb-4 group-hover:text-primary transition-colors duration-300" />
+                        <p className="text-gray-600 font-medium text-lg group-hover:text-primary transition-colors duration-300">
+                          Drag and drop your image here
+                        </p>
+                        <p className="text-sm text-gray-500 mt-2 group-hover:text-primary/70 transition-colors duration-300">
+                          or click to browse
+                        </p>
+                      </label>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Processed</h3>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-shadow duration-300">
+                        <img
+                          src={previewUrl || ''}
+                          alt="Preview"
+                          className="w-full h-auto"
+                        />
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={handleReset}
+                        size="lg"
+                        className="w-full hover:bg-primary/5 transition-colors duration-300"
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Try Another Image
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 hover:border-primary/50 transition-all duration-300 shadow-lg hover:shadow-xl">
+              <CardHeader className="space-y-2">
+                <CardTitle className="flex items-center gap-2 text-2xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  <Wand2 className="h-7 w-7" />
+                  Processed Image
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Your image with background removed will appear here
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {isProcessing ? (
+                    <div className="space-y-4">
+                      <Progress value={progress} className="h-2" />
+                      <p className="text-sm text-gray-500 text-center animate-pulse">
+                        Processing image... {progress}%
+                      </p>
+                    </div>
+                  ) : resultUrl ? (
+                    <div className="rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-shadow duration-300">
                       <img
                         src={resultUrl}
                         alt="Processed"
-                        className="w-full rounded-lg shadow-md"
+                        className="w-full h-auto"
                       />
                     </div>
-                  </div>
-                )}
-
-                <div className="mt-6 flex justify-center gap-4">
-                  <Button
-                    variant="outline"
-                    onClick={handleReset}
-                    disabled={!selectedImage}
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Reset
-                  </Button>
-                  {resultUrl && (
-                    <Button onClick={handleDownload}>
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </Button>
+                  ) : (
+                    <div className="h-[200px] flex items-center justify-center border-2 border-dashed rounded-lg bg-gray-50 hover:bg-gray-100/50 transition-colors duration-300">
+                      <p className="text-gray-500">Processed image will appear here</p>
+                    </div>
                   )}
+
+                  <div className="flex justify-center gap-4">
+                    {selectedImage && !resultUrl && (
+                      <Button 
+                        onClick={handleProcess}
+                        disabled={isProcessing}
+                        className="w-full md:w-auto bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all duration-300"
+                        size="lg"
+                      >
+                        <Wand2 className="h-4 w-4 mr-2" />
+                        Remove Background
+                      </Button>
+                    )}
+                    {resultUrl && (
+                      <Button 
+                        onClick={handleDownload}
+                        size="lg"
+                        className="w-full md:w-auto bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all duration-300"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Result
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
     </div>

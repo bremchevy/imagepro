@@ -7,11 +7,22 @@ const supabase = createClient(
 
 export async function removeBackground(imageFile: File): Promise<string> {
   try {
+    // Validate file size (max 25MB)
+    if (imageFile.size > 25 * 1024 * 1024) {
+      throw new Error('Image size must be less than 25MB');
+    }
+
+    // Validate file type
+    if (!imageFile.type.startsWith('image/')) {
+      throw new Error('Please upload a valid image file');
+    }
+
     // Call Remove.bg API directly with the file
     const formData = new FormData();
     formData.append('image_file', imageFile);
     formData.append('size', 'auto');
 
+    console.log('Sending request to Remove.bg API...');
     const response = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
       headers: {
@@ -21,26 +32,37 @@ export async function removeBackground(imageFile: File): Promise<string> {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.errors?.[0]?.title || 'Failed to remove background');
+      const errorText = await response.text();
+      console.error('Remove.bg API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.errors?.[0]?.title || 'Failed to remove background. Please try again.');
+      } catch (e) {
+        throw new Error(`Failed to remove background: ${response.status} ${response.statusText}`);
+      }
     }
 
     const blob = await response.blob();
+    console.log('Received processed image from Remove.bg API');
     
-    // Upload processed image to Supabase
-    const processedFileName = `processed-${Date.now()}-${imageFile.name}`;
-    const { error: uploadError } = await supabase.storage
-      .from('images')
-      .upload(processedFileName, blob);
-
-    if (uploadError) throw uploadError;
-
-    // Get public URL of processed image
-    const { data: { publicUrl: processedUrl } } = supabase.storage
-      .from('images')
-      .getPublicUrl(processedFileName);
-
-    return processedUrl;
+    // Convert blob to base64 string
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+        } else {
+          reject(new Error('Failed to convert image to base64'));
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read image data'));
+      reader.readAsDataURL(blob);
+    });
   } catch (error) {
     console.error('Error in background removal:', error);
     throw error;
