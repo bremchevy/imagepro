@@ -153,7 +153,13 @@ export default function ToolsPage() {
                   ))}
                 </ul>
                 <div className="mt-8">
-                  <Link href={tool.name === "Background Removal" ? "/tools/background-removal" : "/signup"}>
+                  <Link href={
+                    tool.name === "Background Removal" 
+                      ? "/tools/background-removal" 
+                      : tool.name === "Image Upscaling"
+                      ? "/tools/upscale"
+                      : "/signup"
+                  }>
                     <Button className="btn-primary">Try {tool.name}</Button>
                   </Link>
                 </div>

@@ -32,40 +32,32 @@ export function MarketingNav() {
             <div className="hidden md:flex items-center space-x-3">
               <Link
                 href="/tools"
-                className={`text-sm font-medium transition-all duration-200 rounded-full px-3 py-2 ${
-                  pathname === "/tools"
-                    ? "bg-primary/10 text-primary"
-                    : "text-foreground/80 hover:text-foreground hover:bg-primary/10"
+                className={`nav-link ${
+                  pathname === "/tools" ? "nav-link-active" : ""
                 }`}
               >
                 Tools
               </Link>
               <Link
                 href="/pricing"
-                className={`text-sm font-medium transition-all duration-200 rounded-full px-3 py-2 ${
-                  pathname === "/pricing"
-                    ? "bg-primary/10 text-primary"
-                    : "text-foreground/80 hover:text-foreground hover:bg-primary/10"
+                className={`nav-link ${
+                  pathname === "/pricing" ? "nav-link-active" : ""
                 }`}
               >
                 Pricing
               </Link>
               <Link
                 href="/about"
-                className={`text-sm font-medium transition-all duration-200 rounded-full px-3 py-2 ${
-                  pathname === "/about"
-                    ? "bg-primary/10 text-primary"
-                    : "text-foreground/80 hover:text-foreground hover:bg-primary/10"
+                className={`nav-link ${
+                  pathname === "/about" ? "nav-link-active" : ""
                 }`}
               >
                 About
               </Link>
               <Link
                 href="/contact"
-                className={`text-sm font-medium transition-all duration-200 rounded-full px-3 py-2 ${
-                  pathname === "/contact"
-                    ? "bg-primary/10 text-primary"
-                    : "text-foreground/80 hover:text-foreground hover:bg-primary/10"
+                className={`nav-link ${
+                  pathname === "/contact" ? "nav-link-active" : ""
                 }`}
               >
                 Contact
@@ -136,10 +128,8 @@ export function MarketingNav() {
             <div className="flex flex-col space-y-4">
               <Link
                 href="/tools"
-                className={`text-sm font-medium transition-all duration-200 rounded-full px-3 py-2 ${
-                  pathname === "/tools"
-                    ? "bg-primary/10 text-primary"
-                    : "text-foreground/80 hover:text-foreground hover:bg-primary/10"
+                className={`nav-link ${
+                  pathname === "/tools" ? "nav-link-active" : ""
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -147,10 +137,8 @@ export function MarketingNav() {
               </Link>
               <Link
                 href="/pricing"
-                className={`text-sm font-medium transition-all duration-200 rounded-full px-3 py-2 ${
-                  pathname === "/pricing"
-                    ? "bg-primary/10 text-primary"
-                    : "text-foreground/80 hover:text-foreground hover:bg-primary/10"
+                className={`nav-link ${
+                  pathname === "/pricing" ? "nav-link-active" : ""
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -158,10 +146,8 @@ export function MarketingNav() {
               </Link>
               <Link
                 href="/about"
-                className={`text-sm font-medium transition-all duration-200 rounded-full px-3 py-2 ${
-                  pathname === "/about"
-                    ? "bg-primary/10 text-primary"
-                    : "text-foreground/80 hover:text-foreground hover:bg-primary/10"
+                className={`nav-link ${
+                  pathname === "/about" ? "nav-link-active" : ""
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -169,10 +155,8 @@ export function MarketingNav() {
               </Link>
               <Link
                 href="/contact"
-                className={`text-sm font-medium transition-all duration-200 rounded-full px-3 py-2 ${
-                  pathname === "/contact"
-                    ? "bg-primary/10 text-primary"
-                    : "text-foreground/80 hover:text-foreground hover:bg-primary/10"
+                className={`nav-link ${
+                  pathname === "/contact" ? "nav-link-active" : ""
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
