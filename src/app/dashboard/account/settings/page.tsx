@@ -6,12 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context';
 import { Loader2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function AccountSettings() {
-  const { user, updateEmail, updatePassword } = useAuth();
+  const { user, updateUserEmail, updatePassword } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [formData, setFormData] = useState({
     email: user?.email || '',
@@ -33,7 +37,7 @@ export default function AccountSettings() {
     setLoading(true);
     setError(null);
     try {
-      await updateEmail(formData.email);
+      await updateUserEmail(formData.email);
       setSuccess('Email updated successfully!');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update email');
