@@ -1,9 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+if (!process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY) {
+  throw new Error('Missing env.NEXT_PUBLIC_REMOVE_BG_API_KEY');
+}
 
 export async function removeBackground(imageFile: File): Promise<string> {
   try {
@@ -26,7 +25,7 @@ export async function removeBackground(imageFile: File): Promise<string> {
     const response = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
       headers: {
-        'X-Api-Key': process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY!,
+        'X-Api-Key': process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY,
       },
       body: formData,
     });
@@ -48,23 +47,17 @@ export async function removeBackground(imageFile: File): Promise<string> {
     }
 
     const blob = await response.blob();
-    console.log('Received processed image from Remove.bg API');
-    
-    // Convert blob to base64 string
+    const reader = new FileReader();
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
       reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result);
-        } else {
-          reject(new Error('Failed to convert image to base64'));
-        }
+        const base64data = reader.result as string;
+        resolve(base64data);
       };
-      reader.onerror = () => reject(new Error('Failed to read image data'));
+      reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.error('Error in background removal:', error);
+    console.error('Error in removeBackground:', error);
     throw error;
   }
 } 
