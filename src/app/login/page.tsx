@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,16 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signIn } = useAuth()
+  const { signIn, user } = useAuth()
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
+      console.log('Redirecting to:', redirectTo)
+      router.push(redirectTo)
+    }
+  }, [user, router, searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,9 +34,14 @@ export default function Login() {
 
     try {
       await signIn(email, password)
-      router.push('/')
+      // Wait a moment for the session to be established
+      await new Promise(resolve => setTimeout(resolve, 500))
+      const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
+      console.log('Login successful, redirecting to:', redirectTo)
+      router.push(redirectTo)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      console.error('Login error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to sign in. Please check your credentials.')
     } finally {
       setLoading(false)
     }
@@ -55,6 +69,7 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="h-12"
+              disabled={loading}
             />
           </div>
           <div className="space-y-2">
@@ -67,15 +82,16 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="h-12"
+              disabled={loading}
             />
           </div>
           {error && (
-            <div className="text-sm text-destructive">
+            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
               {error}
             </div>
           )}
           {searchParams.get('message') && (
-            <div className="text-sm text-green-600">
+            <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md">
               {searchParams.get('message')}
             </div>
           )}
@@ -93,18 +109,19 @@ export default function Login() {
         <div className="flex flex-col space-y-2">
           <p className="px-8 text-center text-sm text-muted-foreground">
             <Link
-              href="/reset-password"
+              href="/auth/reset-password"
               className="hover:text-brand underline underline-offset-4"
             >
               Forgot your password?
             </Link>
           </p>
           <p className="px-8 text-center text-sm text-muted-foreground">
+            Don't have an account?{' '}
             <Link
               href="/signup"
               className="hover:text-brand underline underline-offset-4"
             >
-              Don&apos;t have an account? Sign up
+              Sign up
             </Link>
           </p>
         </div>

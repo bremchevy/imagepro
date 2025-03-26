@@ -1,4 +1,3 @@
-import { MarketingNav } from "@/components/marketing/nav";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -112,7 +111,6 @@ const tools = [
 export default function ToolsPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <MarketingNav />
       <main className="flex-1">
         <div className="container py-24 sm:py-32">
           <div className="mx-auto max-w-4xl text-center">

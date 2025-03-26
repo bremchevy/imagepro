@@ -1,12 +1,10 @@
 import { Hero } from "@/components/marketing/hero";
-import { MarketingNav } from "@/components/marketing/nav";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col">
-      <MarketingNav />
       <Hero />
       <section className="container py-12 md:py-24 lg:py-32">
         <div className="mx-auto flex max-w-[980px] flex-col items-center gap-4 py-8 md:py-12 md:pb-8 lg:py-24 lg:pb-20">

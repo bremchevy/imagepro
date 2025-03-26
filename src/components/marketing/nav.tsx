@@ -16,6 +16,11 @@ export function MarketingNav() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Don't render if we're in a dashboard route
+  if (pathname.startsWith('/dashboard')) {
+    return null;
+  }
+
   return (
     <header className="sticky top-4 z-50 w-full">
       <nav className="container mx-auto max-w-6xl">
@@ -65,14 +70,20 @@ export function MarketingNav() {
             </div>
             <div className="flex items-center space-x-2">
               {!user ? (
-                <div className="flex items-center space-x-2">
+                <>
                   <Link 
                     href="/login" 
                     className="text-sm font-medium transition-all duration-200 rounded-full hover:bg-primary/10 px-4 py-2"
                   >
                     Log in
                   </Link>
-                </div>
+                  <Button 
+                    className="text-sm font-medium transition-all duration-200 rounded-full hover:shadow-lg"
+                    onClick={() => router.push('/signup')}
+                  >
+                    Get Started
+                  </Button>
+                </>
               ) : (
                 <div className="flex items-center space-x-2">
                   <DropdownMenu>
@@ -83,7 +94,7 @@ export function MarketingNav() {
                       </Avatar>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => router.push('/dashboard/account')}>
+                      <DropdownMenuItem onClick={() => router.push('/dashboard/account/settings')}>
                         <Settings className="mr-2 h-4 w-4" />
                         Account Settings
                       </DropdownMenuItem>
@@ -163,15 +174,24 @@ export function MarketingNav() {
                 Contact
               </Link>
               {!user && (
-                <Button 
-                  className="text-sm font-medium transition-all duration-200 rounded-full hover:shadow-lg w-full"
-                  onClick={() => {
-                    router.push('/signup');
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  Get Started
-                </Button>
+                <>
+                  <Link 
+                    href="/login"
+                    className="text-sm font-medium transition-all duration-200 rounded-full hover:bg-primary/10 px-4 py-2 text-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Log in
+                  </Link>
+                  <Button 
+                    className="text-sm font-medium transition-all duration-200 rounded-full hover:shadow-lg w-full"
+                    onClick={() => {
+                      router.push('/signup');
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    Get Started
+                  </Button>
+                </>
               )}
             </div>
           </div>
