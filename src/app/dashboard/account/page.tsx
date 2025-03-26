@@ -28,6 +28,9 @@ export default function AccountSettings() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [newEmail, setNewEmail] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -69,9 +72,18 @@ export default function AccountSettings() {
     setSuccess(null)
     setLoading(true)
 
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match')
+      setLoading(false)
+      return
+    }
+
     try {
       await updatePassword(newPassword)
       setSuccess('Password updated successfully')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update password')
     } finally {
