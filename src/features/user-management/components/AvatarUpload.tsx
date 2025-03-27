@@ -23,7 +23,7 @@ interface AvatarUploadProps {
 }
 
 export function AvatarUpload({ currentAvatarUrl, onAvatarUpdate }: AvatarUploadProps) {
-  const { uploadAvatar, deleteAvatar, uploading, error } = useAvatarUpload();
+  const { uploadAvatar, deleteAvatar, isUploading, error } = useAvatarUpload();
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentAvatarUrl);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -85,16 +85,16 @@ export function AvatarUpload({ currentAvatarUrl, onAvatarUpdate }: AvatarUploadP
             onChange={handleFileChange}
             className="hidden"
             id="avatar-upload"
-            disabled={uploading}
+            disabled={isUploading}
           />
           <label htmlFor="avatar-upload">
             <Button
               variant="outline"
               asChild
-              disabled={uploading}
+              disabled={isUploading}
             >
               <span>
-                {uploading ? (
+                {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Uploading...
@@ -113,7 +113,7 @@ export function AvatarUpload({ currentAvatarUrl, onAvatarUpdate }: AvatarUploadP
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteDialog(true)}
-              disabled={uploading}
+              disabled={isUploading}
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Remove
@@ -141,9 +141,9 @@ export function AvatarUpload({ currentAvatarUrl, onAvatarUpdate }: AvatarUploadP
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={uploading}
+              disabled={isUploading}
             >
-              {uploading ? (
+              {isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Removing...
