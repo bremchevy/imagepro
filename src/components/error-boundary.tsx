@@ -1,19 +1,19 @@
-'use client'
+'use client';
 
-import { useEffect } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
-export default function Error({
+export default function ErrorBoundary({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Error:', error)
-  }, [error])
+    console.error('Error:', error);
+  }, [error]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
@@ -30,5 +30,5 @@ export default function Error({
         </div>
       </div>
     </div>
-  )
+  );
 } 
