@@ -1,13 +1,13 @@
 import { supabase } from '@/lib/supabase';
 
-if (!process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY) {
-  throw new Error('Missing env.NEXT_PUBLIC_REMOVE_BG_API_KEY');
-}
-
-const REMOVE_BG_API_KEY = process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY;
+const REMOVE_BG_API_KEY = process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY || '';
 
 export async function removeBackground(imageFile: File): Promise<string> {
   try {
+    if (!REMOVE_BG_API_KEY) {
+      throw new Error('Remove.bg API key is not configured');
+    }
+
     // Validate file size (max 25MB)
     if (imageFile.size > 25 * 1024 * 1024) {
       throw new Error('Image size must be less than 25MB');
