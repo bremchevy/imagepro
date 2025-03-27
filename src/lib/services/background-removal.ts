@@ -4,6 +4,8 @@ if (!process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY) {
   throw new Error('Missing env.NEXT_PUBLIC_REMOVE_BG_API_KEY');
 }
 
+const REMOVE_BG_API_KEY = process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY;
+
 export async function removeBackground(imageFile: File): Promise<string> {
   try {
     // Validate file size (max 25MB)
@@ -25,7 +27,7 @@ export async function removeBackground(imageFile: File): Promise<string> {
     const response = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
       headers: {
-        'X-Api-Key': process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY,
+        'X-Api-Key': REMOVE_BG_API_KEY,
       },
       body: formData,
     });
