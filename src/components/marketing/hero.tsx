@@ -1,189 +1,161 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { useState } from "react";
-import { Image as ImageIcon, Download, Loader2 } from "lucide-react";
-import { SignUpDialog } from "@/components/auth/signup-dialog";
+import { motion } from "framer-motion";
+import { Upload, Download, Sparkles, Zap, Wand2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useDropzone } from "react-dropzone";
+import { toast } from "react-hot-toast";
 
 export function Hero() {
-  const [preview, setPreview] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [image, setImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showSignUpDialog, setShowSignUpDialog] = useState(false);
+  const [isUpscaled, setIsUpscaled] = useState(false);
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+    },
+    maxFiles: 1,
+    onDrop: (acceptedFiles) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          setImage(reader.result as string);
+          setIsUpscaled(false);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  });
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
+  const handleUpscale = async () => {
+    if (!image) return;
     
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      handleImageUpload(file);
-    }
-  };
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleImageUpload(file);
-    }
-  };
-
-  const handleImageUpload = (file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-      startUpscale();
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const startUpscale = () => {
     setIsProcessing(true);
-    // Simulate AI upscaling
-    setTimeout(() => {
+    try {
+      // Simulate processing delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setIsUpscaled(true);
+      toast.success('Image upscaled successfully!');
+    } catch (error) {
+      toast.error('Failed to upscale image');
+    } finally {
       setIsProcessing(false);
-    }, 1500);
+    }
   };
 
   const handleDownload = () => {
-    if (!preview) return;
+    if (!image) return;
     
     const link = document.createElement('a');
-    link.href = preview;
+    link.href = image;
     link.download = 'upscaled-image.png';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const resetPreview = () => {
-    setPreview(null);
-    setIsProcessing(false);
-  };
-
   return (
-    <section className="relative overflow-hidden py-12 sm:py-24">
+    <section className="relative overflow-hidden bg-background py-24 sm:py-32">
+      {/* Animated background lines */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f46e5_1px,transparent_1px),linear-gradient(to_bottom,#4f46e5_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
+        </div>
+      </div>
+
       <div className="container relative">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-2 lg:items-center">
-          {/* Left side - Text content */}
-          <div className="flex flex-col justify-center space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-7xl">
-                Transform Your Images with Our{" "}
-                <span className="text-primary">AI Tools</span>
-              </h1>
-              <p className="text-base leading-7 text-foreground/80 max-w-xl">
-                Professional image editing made simple. Remove backgrounds, upscale images, 
-                and enhance quality with our powerful AI-powered tools.
-              </p>
+        <div className="mx-auto max-w-2xl text-center">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl"
+          >
+            Transform Your Images with AI
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mt-6 text-lg leading-8 text-foreground/80"
+          >
+            Enhance, upscale, and perfect your images with our advanced AI-powered tools. Professional quality results in seconds.
+          </motion.p>
+        </div>
+
+        <div className="mt-16 flex flex-col items-center justify-center gap-8">
+          <div className="flex flex-col items-center gap-4 sm:flex-row">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <span className="text-sm text-foreground/80">AI-Powered Enhancement</span>
             </div>
-            <div className="flex items-center gap-x-6">
-              <Button 
-                size="lg" 
-                className="rounded-full px-8"
-                onClick={() => setShowSignUpDialog(true)}
-              >
-                Get Started Free
-              </Button>
-              <Link href="/tools">
-                <Button variant="outline" size="lg" className="rounded-full px-8">
-                  Explore Tools
-                </Button>
-              </Link>
+            <div className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              <span className="text-sm text-foreground/80">Lightning Fast</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Wand2 className="h-5 w-5 text-primary" />
+              <span className="text-sm text-foreground/80">Smart Background Removal</span>
             </div>
           </div>
 
-          {/* Right side - Interactive Image preview */}
-          <div className="relative">
-            <div className="relative rounded-xl bg-gray-900/5 p-8 ring-1 ring-inset ring-gray-900/10 lg:rounded-2xl">
-              <div className="relative mx-auto">
-                <div 
-                  className={`relative aspect-[16/9] overflow-hidden rounded-lg bg-gray-100 shadow-2xl ring-1 ring-gray-900/10 transition-all duration-200 ${
-                    isDragging ? 'ring-2 ring-primary/50 bg-primary/5' : ''
-                  }`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  {preview ? (
-                    <div className="relative h-full w-full">
-                      <img 
-                        src={preview} 
-                        alt="Processed" 
-                        className="h-full w-full object-cover"
-                      />
-                      {isProcessing && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                          <div className="flex flex-col items-center gap-4">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                            <p className="text-white font-medium">Upscaling image...</p>
-                          </div>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-200">
-                        <Button 
-                          variant="secondary" 
-                          className="rounded-full"
-                          onClick={resetPreview}
-                        >
-                          Try Another Image
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-                      <div className="text-center">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                          <ImageIcon className="h-6 w-6 text-primary" />
-                        </div>
-                        <p className="mt-4 text-lg font-medium text-foreground/80">
-                          Drop your image here
-                        </p>
-                        <p className="mt-2 text-sm text-foreground/60">
-                          or click to upload
-                        </p>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileInput}
-                          className="absolute inset-0 cursor-pointer opacity-0"
-                        />
-                      </div>
-                    </div>
-                  )}
+          <div className="w-full max-w-2xl">
+            <div
+              {...getRootProps()}
+              className={`relative rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+                isDragActive ? 'border-primary bg-primary/5' : 'border-foreground/20'
+              }`}
+            >
+              <input {...getInputProps()} />
+              <Upload className="mx-auto h-12 w-12 text-foreground/40" />
+              <p className="mt-2 text-sm text-foreground/60">
+                {isDragActive
+                  ? "Drop the image here"
+                  : "Drag and drop an image, or click to select"}
+              </p>
+            </div>
+
+            {image && (
+              <div className="mt-8">
+                <div className="relative aspect-video overflow-hidden rounded-lg bg-foreground/5">
+                  <img
+                    src={image}
+                    alt="Preview"
+                    className="h-full w-full object-contain"
+                  />
                 </div>
-                <div className="mt-6 flex flex-col items-center gap-4">
-                  <div className="flex items-center justify-center gap-2 text-sm text-foreground/60">
-                    <span>Try our AI-image upscaled tool</span>
-                  </div>
-                  {preview && !isProcessing && (
-                    <Button 
-                      size="lg"
-                      className="rounded-full bg-primary hover:bg-primary/90"
-                      onClick={handleDownload}
+                <div className="mt-4 flex justify-center gap-4">
+                  {!isUpscaled ? (
+                    <Button
+                      onClick={handleUpscale}
+                      disabled={isProcessing}
+                      className="btn-primary"
                     >
-                      <Download className="mr-2 h-5 w-5" />
-                      Download Upscaled Image
+                      {isProcessing ? "Processing..." : "Upscale Image"}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleDownload}
+                      className="btn-primary"
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
                     </Button>
                   )}
                 </div>
               </div>
-            </div>
+            )}
           </div>
+
+          <Button variant="outline" size="lg" className="btn-secondary">
+            Try Our Tools
+          </Button>
         </div>
       </div>
-      <SignUpDialog open={showSignUpDialog} onOpenChange={setShowSignUpDialog} />
     </section>
   );
 } 

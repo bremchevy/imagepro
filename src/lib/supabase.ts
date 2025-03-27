@@ -8,6 +8,12 @@ export const supabase = createClient(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
+      detectSessionInUrl: false
+    },
+    global: {
+      headers: {
+        'x-application-name': 'imagepro'
+      }
     }
   }
 ) 

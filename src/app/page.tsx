@@ -1,11 +1,15 @@
-import { Hero } from "@/components/marketing/hero";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Hero } from "@/components/marketing/hero";
+import { Features } from "@/components/marketing/features";
+import { Testimonials } from "@/components/marketing/testimonials";
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col">
       <Hero />
+      <Features />
+      <Testimonials />
       <section className="container py-12 md:py-24 lg:py-32">
         <div className="mx-auto flex max-w-[980px] flex-col items-center gap-4 py-8 md:py-12 md:pb-8 lg:py-24 lg:pb-20">
           <h2 className="text-center text-4xl font-bold leading-tight tracking-tight text-foreground md:text-5xl lg:leading-[1.1]">

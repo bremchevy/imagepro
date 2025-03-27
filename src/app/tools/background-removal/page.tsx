@@ -54,12 +54,12 @@ export default function BackgroundRemovalPage() {
     setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
+    const file = e.dataTransfer.files[0];
       if (file.type.startsWith('image/')) {
-        setSelectedImage(file);
-        setPreviewUrl(URL.createObjectURL(file));
-        setResultUrl(null);
-      } else {
+      setSelectedImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setResultUrl(null);
+    } else {
         toast.error('Please upload a valid image file');
       }
     }
@@ -69,9 +69,9 @@ export default function BackgroundRemovalPage() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (file.type.startsWith('image/')) {
-        setSelectedImage(file);
-        setPreviewUrl(URL.createObjectURL(file));
-        setResultUrl(null);
+      setSelectedImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setResultUrl(null);
       } else {
         toast.error('Please upload a valid image file');
       }
@@ -96,30 +96,30 @@ export default function BackgroundRemovalPage() {
           <CardTitle className="flex items-center gap-2">
             <Wand2 className="h-5 w-5" />
             Background Removal
-          </CardTitle>
+                </CardTitle>
           <CardDescription>
             Upload an image and we'll remove its background automatically
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center ${
               dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
-              id="file-upload"
-            />
-            <label
-              htmlFor="file-upload"
+                      }`}
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
+                    >
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="file-upload"
+                      />
+                      <label
+                        htmlFor="file-upload"
               className="cursor-pointer flex flex-col items-center gap-4"
             >
               <Upload className="h-12 w-12 text-muted-foreground" />
@@ -131,8 +131,8 @@ export default function BackgroundRemovalPage() {
                   Supports PNG, JPG, JPEG up to 25MB
                 </p>
               </div>
-            </label>
-          </div>
+                      </label>
+                    </div>
 
           {previewUrl && (
             <div className="mt-8">
@@ -140,28 +140,28 @@ export default function BackgroundRemovalPage() {
               <div className="relative aspect-video rounded-lg overflow-hidden">
                 <img
                   src={previewUrl}
-                  alt="Preview"
+                          alt="Preview"
                   className="object-contain w-full h-full"
-                />
-              </div>
-            </div>
-          )}
+                        />
+                      </div>
+                    </div>
+                  )}
 
           {isProcessing && (
             <div className="mt-8">
               <Progress value={progress} className="w-full" />
               <p className="text-sm text-muted-foreground mt-2 text-center">
-                Processing image... {progress}%
-              </p>
-            </div>
+                        Processing image... {progress}%
+                      </p>
+                    </div>
           )}
 
           {resultUrl && (
             <div className="mt-8">
               <h3 className="text-sm font-medium mb-2">Result</h3>
               <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
-                <img
-                  src={resultUrl}
+                      <img
+                        src={resultUrl}
                   alt="Result"
                   className="object-contain w-full h-full"
                 />
@@ -174,14 +174,14 @@ export default function BackgroundRemovalPage() {
                   <Download className="h-4 w-4 mr-2" />
                   Download
                 </Button>
-              </div>
-            </div>
-          )}
+                    </div>
+                    </div>
+                  )}
         </CardContent>
         <CardContent className="pt-0">
-          <Button
+                      <Button 
             className="w-full"
-            onClick={handleProcess}
+                        onClick={handleProcess}
             disabled={!selectedImage || isProcessing}
           >
             {isProcessing ? (
@@ -191,13 +191,13 @@ export default function BackgroundRemovalPage() {
               </>
             ) : (
               <>
-                <Wand2 className="h-4 w-4 mr-2" />
-                Remove Background
+                        <Wand2 className="h-4 w-4 mr-2" />
+                        Remove Background
               </>
             )}
-          </Button>
-        </CardContent>
-      </Card>
+                      </Button>
+              </CardContent>
+            </Card>
     </div>
   );
 } 

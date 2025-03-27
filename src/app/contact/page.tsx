@@ -193,16 +193,16 @@ export default function ContactPage() {
               {contactInfo.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.name} className="relative pl-9">
-                    <dt className="inline font-semibold text-foreground">
-                      <div className="absolute left-1 top-1 h-5 w-5 text-primary">
+                <div key={item.name} className="relative pl-9">
+                  <dt className="inline font-semibold text-foreground">
+                    <div className="absolute left-1 top-1 h-5 w-5 text-primary">
                         <Icon className="h-5 w-5" />
-                      </div>
-                      {item.name}
-                    </dt>
+                    </div>
+                    {item.name}
+                  </dt>
                     <dd className="inline">{item.description}</dd>
                     <dd className="mt-2 text-sm text-foreground/60">{item.details}</dd>
-                  </div>
+                </div>
                 );
               })}
             </dl>
@@ -212,24 +212,24 @@ export default function ContactPage() {
         {/* FAQ Section */}
         <div className="container py-24 sm:py-32">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl lg:mx-0">
-              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          <div className="mx-auto max-w-2xl lg:mx-0">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 Frequently Asked Questions
-              </h2>
-              <p className="mt-6 text-lg leading-8 text-foreground/80">
+            </h2>
+            <p className="mt-6 text-lg leading-8 text-foreground/80">
                 Find answers to common questions about our support services.
-              </p>
-            </div>
+            </p>
+          </div>
             <dl className="mt-16 space-y-8">
               {faqs.map((faq) => (
                 <div key={faq.question} className="rounded-lg bg-card p-6 shadow-sm">
                   <dt className="text-lg font-semibold leading-7 text-foreground">
                     {faq.question}
-                  </dt>
+              </dt>
                   <dd className="mt-4 text-base leading-7 text-foreground/80">
                     {faq.answer}
-                  </dd>
-                </div>
+              </dd>
+            </div>
               ))}
             </dl>
           </div>
