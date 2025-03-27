@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { MarketingNav } from "@/components/marketing/nav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -54,38 +53,36 @@ export default function BackgroundRemovalPage() {
     e.stopPropagation();
     setDragActive(false);
 
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) {
-      setSelectedImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      setResultUrl(null);
-    } else {
-      toast.error("Please upload a valid image file");
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.type.startsWith('image/')) {
+        setSelectedImage(file);
+        setPreviewUrl(URL.createObjectURL(file));
+        setResultUrl(null);
+      } else {
+        toast.error('Please upload a valid image file');
+      }
     }
   }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      setResultUrl(null);
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.type.startsWith('image/')) {
+        setSelectedImage(file);
+        setPreviewUrl(URL.createObjectURL(file));
+        setResultUrl(null);
+      } else {
+        toast.error('Please upload a valid image file');
+      }
     }
-  };
-
-  const handleReset = () => {
-    setSelectedImage(null);
-    setPreviewUrl(null);
-    setResultUrl(null);
-    setProgress(0);
-    setIsProcessing(false);
   };
 
   const handleDownload = () => {
     if (resultUrl) {
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = resultUrl;
-      link.download = "removed-background.png";
+      link.download = 'removed-bg.png';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -93,148 +90,114 @@ export default function BackgroundRemovalPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-50 to-white">
-      <MarketingNav />
-      <main className="flex-1">
-        <div className="container py-12">
-          <div className="mb-12 text-center">
-            <h1 className="text-4xl font-bold tracking-tight mb-4">Background Removal</h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Remove backgrounds from your images instantly with AI-powered precision. Perfect for product photos, portraits, and more.
-            </p>
+    <div className="container mx-auto px-4 py-8">
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wand2 className="h-5 w-5" />
+            Background Removal
+          </CardTitle>
+          <CardDescription>
+            Upload an image and we'll remove its background automatically
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div
+            className={`border-2 border-dashed rounded-lg p-8 text-center ${
+              dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
+            }`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+              id="file-upload"
+            />
+            <label
+              htmlFor="file-upload"
+              className="cursor-pointer flex flex-col items-center gap-4"
+            >
+              <Upload className="h-12 w-12 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">
+                  Drag and drop your image here, or click to select
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Supports PNG, JPG, JPEG up to 25MB
+                </p>
+              </div>
+            </label>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card className="border-2 hover:border-primary/50 transition-all duration-300 shadow-lg hover:shadow-xl">
-              <CardHeader className="space-y-2">
-                <CardTitle className="flex items-center gap-2 text-2xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  <ImageIcon className="h-7 w-7" />
-                  Original Image
-                </CardTitle>
-                <CardDescription className="text-base">
-                  Upload your image here to get started
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {!selectedImage ? (
-                    <div
-                      className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
-                        dragActive 
-                          ? "border-primary bg-primary/5 scale-[1.02] shadow-lg" 
-                          : "border-gray-300 hover:border-primary/50 hover:bg-gray-50/50"
-                      }`}
-                      onDragEnter={handleDrag}
-                      onDragLeave={handleDrag}
-                      onDragOver={handleDrag}
-                      onDrop={handleDrop}
-                    >
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileSelect}
-                        className="hidden"
-                        id="file-upload"
-                      />
-                      <label
-                        htmlFor="file-upload"
-                        className="cursor-pointer flex flex-col items-center group"
-                      >
-                        <Upload className="h-14 w-14 text-gray-400 mb-4 group-hover:text-primary transition-colors duration-300" />
-                        <p className="text-gray-600 font-medium text-lg group-hover:text-primary transition-colors duration-300">
-                          Drag and drop your image here
-                        </p>
-                        <p className="text-sm text-gray-500 mt-2 group-hover:text-primary/70 transition-colors duration-300">
-                          or click to browse
-                        </p>
-                      </label>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-shadow duration-300">
-                        <img
-                          src={previewUrl || ''}
-                          alt="Preview"
-                          className="w-full h-auto"
-                        />
-                      </div>
-                      <Button
-                        variant="outline"
-                        onClick={handleReset}
-                        size="lg"
-                        className="w-full hover:bg-primary/5 transition-colors duration-300"
-                      >
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Try Another Image
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+          {previewUrl && (
+            <div className="mt-8">
+              <h3 className="text-sm font-medium mb-2">Preview</h3>
+              <div className="relative aspect-video rounded-lg overflow-hidden">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="object-contain w-full h-full"
+                />
+              </div>
+            </div>
+          )}
 
-            <Card className="border-2 hover:border-primary/50 transition-all duration-300 shadow-lg hover:shadow-xl">
-              <CardHeader className="space-y-2">
-                <CardTitle className="flex items-center gap-2 text-2xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  <Wand2 className="h-7 w-7" />
-                  Processed Image
-                </CardTitle>
-                <CardDescription className="text-base">
-                  Your image with background removed will appear here
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {isProcessing ? (
-                    <div className="space-y-4">
-                      <Progress value={progress} className="h-2" />
-                      <p className="text-sm text-gray-500 text-center animate-pulse">
-                        Processing image... {progress}%
-                      </p>
-                    </div>
-                  ) : resultUrl ? (
-                    <div className="rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-shadow duration-300">
-                      <img
-                        src={resultUrl}
-                        alt="Processed"
-                        className="w-full h-auto"
-                      />
-                    </div>
-                  ) : (
-                    <div className="h-[200px] flex items-center justify-center border-2 border-dashed rounded-lg bg-gray-50 hover:bg-gray-100/50 transition-colors duration-300">
-                      <p className="text-gray-500">Processed image will appear here</p>
-                    </div>
-                  )}
+          {isProcessing && (
+            <div className="mt-8">
+              <Progress value={progress} className="w-full" />
+              <p className="text-sm text-muted-foreground mt-2 text-center">
+                Processing image... {progress}%
+              </p>
+            </div>
+          )}
 
-                  <div className="flex justify-center gap-4">
-                    {selectedImage && !resultUrl && (
-                      <Button 
-                        onClick={handleProcess}
-                        disabled={isProcessing}
-                        className="w-full md:w-auto bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all duration-300"
-                        size="lg"
-                      >
-                        <Wand2 className="h-4 w-4 mr-2" />
-                        Remove Background
-                      </Button>
-                    )}
-                    {resultUrl && (
-                      <Button 
-                        onClick={handleDownload}
-                        size="lg"
-                        className="w-full md:w-auto bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all duration-300"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download Result
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </main>
+          {resultUrl && (
+            <div className="mt-8">
+              <h3 className="text-sm font-medium mb-2">Result</h3>
+              <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+                <img
+                  src={resultUrl}
+                  alt="Result"
+                  className="object-contain w-full h-full"
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="absolute bottom-4 right-4"
+                  onClick={handleDownload}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+        <CardContent className="pt-0">
+          <Button
+            className="w-full"
+            onClick={handleProcess}
+            disabled={!selectedImage || isProcessing}
+          >
+            {isProcessing ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Wand2 className="h-4 w-4 mr-2" />
+                Remove Background
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 } 

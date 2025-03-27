@@ -3,53 +3,31 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
-  try {
-    const res = NextResponse.next()
-    const supabase = createMiddlewareClient(
-      { req, res },
-      {
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      }
-    )
+  const res = NextResponse.next()
+  const supabase = createMiddlewareClient({ req, res })
 
-    // Refresh session if expired
-    await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
-    // List of paths that require authentication
-    const protectedPaths = ['/dashboard', '/dashboard/*', '/settings', '/profile', '/account', '/account/*']
-    const isProtectedPath = protectedPaths.some(path => {
-      if (path.endsWith('/*')) {
-        const basePath = path.slice(0, -2)
-        return req.nextUrl.pathname.startsWith(basePath)
-      }
-      return req.nextUrl.pathname === path
-    })
-
-    // If user is not signed in and trying to access a protected path,
-    // redirect the user to /login
-    if (!session && isProtectedPath) {
-      const redirectUrl = new URL('/login', req.url)
-      redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname)
-      return NextResponse.redirect(redirectUrl)
-    }
-
-    // If user is signed in and trying to access auth pages,
-    // redirect the user to /dashboard
-    if (session && req.nextUrl.pathname.startsWith('/auth/')) {
-      return NextResponse.redirect(new URL('/dashboard', req.url))
-    }
-
-    return res
-  } catch (error) {
-    console.error('Middleware error:', error)
-    // Return next response if there's an error
-    return NextResponse.next()
+  // If user is not signed in and the current path is not / or /login or /signup,
+  // redirect the user to /login
+  if (!session && !['/', '/login', '/signup'].includes(req.nextUrl.pathname)) {
+    const redirectUrl = req.nextUrl.clone()
+    redirectUrl.pathname = '/login'
+    redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname)
+    return NextResponse.redirect(redirectUrl)
   }
+
+  // If user is signed in and the current path is /login or /signup,
+  // redirect the user to /dashboard
+  if (session && ['/login', '/signup'].includes(req.nextUrl.pathname)) {
+    const redirectUrl = req.nextUrl.clone()
+    redirectUrl.pathname = '/dashboard'
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  return res
 }
 
 export const config = {
