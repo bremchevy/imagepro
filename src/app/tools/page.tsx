@@ -101,46 +101,42 @@ export default function ToolsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group relative rounded-2xl overflow-hidden bg-white/50 backdrop-blur-sm border border-gray-100/50 hover:border-primary/20 transition-all duration-300 hover:shadow-2xl"
+                className="group relative p-8 rounded-2xl border border-gray-100/50 hover:border-primary/20 transition-all duration-300 hover:shadow-2xl bg-white/50 backdrop-blur-sm overflow-hidden"
               >
-                {/* Card Header with Gradient */}
-                <div className={`relative h-32 bg-gradient-to-r ${tool.gradient} p-6`}>
-                  <div className="absolute inset-0 bg-black/10" />
-                  <div className="relative flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 text-white backdrop-blur-sm">
-                        {tool.icon}
-                      </div>
-                      <h2 className="text-2xl font-bold text-white">{tool.name}</h2>
-                    </div>
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm">
-                      <ArrowRight className="h-4 w-4" />
-                    </div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${tool.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
+                <div className="relative">
+                  <div className="flex items-center gap-x-4 mb-6">
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${tool.gradient} text-white group-hover:scale-110 transition-transform duration-300`}>
+                      {tool.icon}
+          </div>
+                    <h2 className="text-2xl font-bold text-foreground">{tool.name}</h2>
                   </div>
-                </div>
-
-                {/* Card Content */}
-                <div className="p-6">
-                  <p className="text-lg text-foreground/80 mb-6">{tool.description}</p>
-                  
-                  {/* Features List */}
-                  <ul role="list" className="space-y-4 mb-6">
-                    {tool.features.map((feature) => (
+                  <p className="text-lg text-foreground/80 mb-8">{tool.description}</p>
+                  <ul role="list" className="space-y-4 mb-8">
+                  {tool.features.map((feature) => (
                       <motion.li 
                         key={feature} 
-                        className="flex items-center gap-3 text-base text-foreground/80 group-hover:text-foreground transition-colors duration-200"
+                        className="flex gap-x-3 text-base text-foreground/80 group-hover:text-foreground transition-colors duration-200"
                         whileHover={{ x: 5 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <div className={`flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br ${tool.gradient} text-white text-xs`}>
-                          ✓
-                        </div>
-                        {feature}
+                        <svg
+                          className={`h-6 w-5 flex-none text-primary group-hover:scale-110 transition-transform duration-200`}
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {feature}
                       </motion.li>
-                    ))}
-                  </ul>
-
-                  {/* Action Button */}
+                  ))}
+                </ul>
+                  <div className="mt-auto">
                   <Link href={
                     tool.name === "Background Removal" 
                       ? "/tools/background-removal" 
@@ -148,22 +144,20 @@ export default function ToolsPage() {
                       ? "/tools/upscale"
                       : "/signup"
                   }>
-                    <Button className={`w-full bg-gradient-to-r ${tool.gradient} hover:${tool.hoverGradient} text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group`}>
-                      <span className="flex items-center justify-center">
-                        Try {tool.name}
-                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                      </span>
-                    </Button>
+                      <Button className={`w-full bg-gradient-to-r ${tool.gradient} hover:${tool.hoverGradient} text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group`}>
+                        <span className="flex items-center justify-center">
+                          Try {tool.name}
+                          <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                        </span>
+                      </Button>
                   </Link>
                 </div>
-
-                {/* Hover Effect Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${tool.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500 pointer-events-none`} />
+              </div>
               </motion.div>
             ))}
           </div>
 
-          {/* CTA Section */}
+          {/* CTA Section - Only show when user is not logged in */}
           {!user && (
             <motion.div 
               className="mx-auto mt-24 max-w-2xl text-center relative"
@@ -174,22 +168,22 @@ export default function ToolsPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent rounded-full blur-3xl -z-10" />
               <div className="relative">
                 <h2 className="text-3xl font-bold tracking-tight text-foreground mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground via-primary to-foreground">
-                  Ready to get started?
-                </h2>
+              Ready to get started?
+            </h2>
                 <p className="text-lg leading-8 text-foreground/80 mb-8">
-                  Sign up for a free account and start editing your images today.
-                </p>
+              Sign up for a free account and start editing your images today.
+            </p>
                 <div>
-                  <Link href="/signup">
+              <Link href="/signup">
                     <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group">
                       <span className="flex items-center justify-center">
                         Create Free Account
                         <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                       </span>
                     </Button>
-                  </Link>
-                </div>
-              </div>
+              </Link>
+            </div>
+          </div>
             </motion.div>
           )}
         </div>

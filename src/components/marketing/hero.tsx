@@ -226,14 +226,14 @@ export function Hero() {
                   </motion.div>
                 </Link>
               </motion.div>
-            </motion.div>
+          </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
               className="flex flex-col sm:flex-row items-center gap-4"
-            >
+          >
               {!user && (
                 <Link href="/signup">
                   <motion.div
@@ -505,7 +505,7 @@ export function Hero() {
                             <Link href="/signup">
                               <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
                                 Create Account
-                              </Button>
+              </Button>
                 </Link>
                         </div>
                       </div>
