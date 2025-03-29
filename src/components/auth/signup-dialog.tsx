@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useAuth } from '@/contexts/auth-context'
+import { useAuth } from '@/components/providers/auth-provider'
 import { Label } from '@/components/ui/label'
 import { Loader2, Mail, ArrowLeft } from 'lucide-react'
 

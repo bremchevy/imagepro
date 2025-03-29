@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useAuth } from '@/contexts/auth-context'
+import { useAuth } from '@/components/providers/auth-provider'
 import { Label } from '@/components/ui/label'
 import { Loader2 } from 'lucide-react'
 

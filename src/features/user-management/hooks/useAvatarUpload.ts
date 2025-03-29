@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/components/providers/auth-provider';
 import { ProfileService } from '../services/profile';
 import { AvatarUploadResponse } from '../types/profile';
 

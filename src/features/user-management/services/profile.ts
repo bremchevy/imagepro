@@ -2,51 +2,70 @@ import { supabase } from '@/lib/supabase';
 import { UserProfile, ProfileFormData, AvatarUploadResponse, ProfileError } from '../types/profile';
 
 export class ProfileService {
-  static async getProfile(userId: string): Promise<UserProfile | null> {
+  static async getProfile(userId: string): Promise<UserProfile> {
     try {
-      // For guest users, return a default profile
-      if (userId === 'guest') {
-        return {
-          id: 'guest',
-          full_name: 'Guest User',
-          location: null,
-          bio: null,
-          avatar_url: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-      }
-
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('*')
         .eq('id', userId)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // Profile doesn't exist, create a default one
+          return this.createDefaultProfile(userId);
+        }
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      // Return a default profile if there's an error
+      return this.createDefaultProfile(userId);
+    }
+  }
+
+  static async createDefaultProfile(userId: string): Promise<UserProfile> {
+    const defaultProfile: UserProfile = {
+      id: userId,
+      full_name: 'New User',
+      location: null,
+      bio: null,
+      avatar_url: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert([defaultProfile])
+        .select()
         .single();
 
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error fetching profile:', error);
-      return null;
+      console.error('Error creating default profile:', error);
+      return defaultProfile;
     }
   }
 
   static async updateProfile(userId: string, data: ProfileFormData): Promise<UserProfile | null> {
     try {
-      // Don't allow updates for guest users
-      if (userId === 'guest') {
-        return null;
-      }
-
-      const { data: profile, error } = await supabase
-        .from('user_profiles')
-        .update(data)
+      const { data: updated, error } = await supabase
+        .from('profiles')
+        .update({
+          ...data,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', userId)
         .select()
         .single();
 
       if (error) throw error;
-      return profile;
+      return updated;
     } catch (error) {
       console.error('Error updating profile:', error);
       return null;

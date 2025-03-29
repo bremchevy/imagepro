@@ -32,64 +32,53 @@ const testimonials = [
 
 export function Testimonials() {
   return (
-    <section className="py-24 sm:py-32">
-      <div className="container">
-        <div className="mx-auto max-w-2xl text-center">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
-          >
-            Loved by Professionals Worldwide
-          </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mt-6 text-lg leading-8 text-foreground/80"
-          >
-            See what our users have to say about their experience with our AI-powered image processing tools.
-          </motion.p>
+    <section className="container py-12 md:py-24 lg:py-32">
+      <div className="mx-auto flex max-w-[980px] flex-col items-center gap-4 py-8 md:py-12 md:pb-8 lg:py-24 lg:pb-20">
+        <h2 className="text-center text-4xl font-bold leading-tight tracking-tight text-foreground md:text-5xl lg:leading-[1.1]">
+          Loved by Professionals Worldwide
+        </h2>
+        <p className="max-w-[750px] text-center text-lg text-foreground/80 sm:text-xl">
+          See what our users have to say about their experience with our AI-powered image processing tools.
+        </p>
+      </div>
+      <div className="mx-auto grid justify-center gap-6 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3 lg:gap-8">
+        <div className="card animate-fade-in">
+          <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
+            <div className="space-y-2">
+              <p className="text-sm text-foreground/80">
+                "The AI-powered image enhancement is incredible. It's saved me countless hours of manual editing."
+              </p>
+              <div className="flex items-center space-x-2">
+                <div className="font-semibold text-foreground">Sarah Chen</div>
+                <div className="text-sm text-foreground/60">Professional Photographer</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="mx-auto mt-16 flow-root max-w-2xl sm:mt-20 lg:mx-0 lg:max-w-none">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={testimonial.author.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="relative rounded-2xl bg-background/80 backdrop-blur-sm p-8 ring-1 ring-inset ring-primary/10 hover:ring-primary/20 transition-all duration-300"
-              >
-                <div className="flex gap-x-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-primary text-primary" />
-                  ))}
-                </div>
-                <p className="mt-6 text-lg leading-8 text-foreground/80">
-                  {testimonial.content}
-                </p>
-                <div className="mt-8 flex items-center gap-x-4">
-                  <img
-                    className="h-12 w-12 rounded-full bg-gray-50"
-                    src={testimonial.author.image}
-                    alt={testimonial.author.name}
-                  />
-                  <div>
-                    <div className="font-semibold text-foreground">
-                      {testimonial.author.name}
-                    </div>
-                    <div className="text-sm text-foreground/60">
-                      {testimonial.author.role}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+        <div className="card animate-fade-in [animation-delay:200ms]">
+          <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
+            <div className="space-y-2">
+              <p className="text-sm text-foreground/80">
+                "The background removal tool is a game-changer for my e-commerce business. It's fast and accurate."
+              </p>
+              <div className="flex items-center space-x-2">
+                <div className="font-semibold text-foreground">Michael Rodriguez</div>
+                <div className="text-sm text-foreground/60">E-commerce Store Owner</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="card animate-fade-in [animation-delay:400ms]">
+          <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
+            <div className="space-y-2">
+              <p className="text-sm text-foreground/80">
+                "I've tried many image processing tools, but this one stands out for its ease of use and quality results."
+              </p>
+              <div className="flex items-center space-x-2">
+                <div className="font-semibold text-foreground">Emily Thompson</div>
+                <div className="text-sm text-foreground/60">Digital Content Creator</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

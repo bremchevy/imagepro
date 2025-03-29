@@ -4,17 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/components/providers/auth-provider";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Image, LayoutDashboard } from "lucide-react";
+import { User, LogOut, Image, LayoutDashboard, Loader2 } from "lucide-react";
 import { useProfile } from '@/features/user-management/hooks/useProfile';
 
 export function MarketingNav() {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
-  const { profile } = useProfile();
+  const { profile, loading } = useProfile();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -29,7 +29,7 @@ export function MarketingNav() {
               href="/" 
               className="flex items-center space-x-2"
             >
-              <span className="font-bold text-xl text-primary">Imagepro</span>
+              <span className="font-bold text-xl text-primary">ImagePro</span>
             </Link>
           </div>
           <div className="flex items-center space-x-2">
@@ -113,8 +113,18 @@ export function MarketingNav() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Avatar className="h-8 w-8 hover:opacity-80 cursor-pointer">
-                        <AvatarImage src={profile?.avatar_url || ''} />
-                        <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                        {loading ? (
+                          <div className="flex items-center justify-center h-full w-full">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          </div>
+                        ) : (
+                          <>
+                            <AvatarImage src={profile?.avatar_url || ''} />
+                            <AvatarFallback>
+                              {user?.email?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </>
+                        )}
                       </Avatar>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
