@@ -1,5 +1,10 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useAuth } from "@/components/providers/auth-provider";
+import { motion } from "framer-motion";
+import { ArrowRight, Sparkles, Zap, Wand2, Palette, Eraser } from "lucide-react";
 
 const tools = [
   {
@@ -11,22 +16,9 @@ const tools = [
       "Multiple background options",
       "Batch processing",
     ],
-    icon: (
-      <svg
-        className="h-6 w-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-        />
-      </svg>
-    ),
+    icon: <Eraser className="h-6 w-6" />,
+    gradient: "from-blue-500 to-cyan-500",
+    hoverGradient: "from-blue-600 to-cyan-600",
   },
   {
     name: "Image Upscaling",
@@ -37,22 +29,9 @@ const tools = [
       "Multiple AI models",
       "Custom presets",
     ],
-    icon: (
-      <svg
-        className="h-6 w-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-        />
-      </svg>
-    ),
+    icon: <Zap className="h-6 w-6" />,
+    gradient: "from-purple-500 to-pink-500",
+    hoverGradient: "from-purple-600 to-pink-600",
   },
   {
     name: "Object Removal",
@@ -63,22 +42,9 @@ const tools = [
       "Multiple object selection",
       "Undo/redo support",
     ],
-    icon: (
-      <svg
-        className="h-6 w-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-        />
-      </svg>
-    ),
+    icon: <Wand2 className="h-6 w-6" />,
+    gradient: "from-orange-500 to-red-500",
+    hoverGradient: "from-orange-600 to-red-600",
   },
   {
     name: "Color Correction",
@@ -89,68 +55,92 @@ const tools = [
       "Preset filters",
       "Batch processing",
     ],
-    icon: (
-      <svg
-        className="h-6 w-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-        />
-      </svg>
-    ),
+    icon: <Palette className="h-6 w-6" />,
+    gradient: "from-green-500 to-emerald-500",
+    hoverGradient: "from-green-600 to-emerald-600",
   },
 ];
 
 export default function ToolsPage() {
+  const { user } = useAuth();
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-background to-background/95">
       <main className="flex-1">
-        <div className="container py-24 sm:py-32">
-          <div className="mx-auto max-w-4xl text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+        <div className="container py-16 sm:py-24">
+          {/* Header Section */}
+          <motion.div 
+            className="mx-auto max-w-4xl text-center mb-16 relative"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-full blur-3xl -z-10" />
+            <motion.div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 text-primary mb-6 backdrop-blur-sm border border-primary/20"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Sparkles className="h-4 w-4" />
+              <span className="text-sm font-medium">AI-Powered Image Tools</span>
+            </motion.div>
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-foreground via-primary to-foreground">
               Powerful Image Editing Tools
             </h1>
-            <p className="mt-6 text-lg leading-8 text-foreground/80">
+            <p className="mt-6 text-lg leading-8 text-foreground/80 max-w-2xl mx-auto">
               Our suite of AI-powered tools helps you create professional-quality images in minutes.
             </p>
-          </div>
-          <div className="mx-auto mt-16 grid max-w-6xl grid-cols-1 gap-8 sm:mt-20 lg:grid-cols-2">
-            {tools.map((tool) => (
-              <div key={tool.name} className="card group relative">
-                <div className="flex items-center gap-x-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20">
-                    {tool.icon}
+          </motion.div>
+
+          {/* Tools Grid */}
+          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 sm:gap-12 lg:grid-cols-2">
+            {tools.map((tool, index) => (
+              <motion.div 
+                key={tool.name} 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="group relative rounded-2xl overflow-hidden bg-white/50 backdrop-blur-sm border border-gray-100/50 hover:border-primary/20 transition-all duration-300 hover:shadow-2xl"
+              >
+                {/* Card Header with Gradient */}
+                <div className={`relative h-32 bg-gradient-to-r ${tool.gradient} p-6`}>
+                  <div className="absolute inset-0 bg-black/10" />
+                  <div className="relative flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 text-white backdrop-blur-sm">
+                        {tool.icon}
+                      </div>
+                      <h2 className="text-2xl font-bold text-white">{tool.name}</h2>
+                    </div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm">
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
                   </div>
-                  <h2 className="text-xl font-bold text-foreground">{tool.name}</h2>
                 </div>
-                <p className="mt-4 text-foreground/80">{tool.description}</p>
-                <ul role="list" className="mt-6 space-y-3">
-                  {tool.features.map((feature) => (
-                    <li key={feature} className="flex gap-x-3 text-sm text-foreground/80">
-                      <svg
-                        className="h-6 w-5 flex-none text-primary"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        aria-hidden="true"
+
+                {/* Card Content */}
+                <div className="p-6">
+                  <p className="text-lg text-foreground/80 mb-6">{tool.description}</p>
+                  
+                  {/* Features List */}
+                  <ul role="list" className="space-y-4 mb-6">
+                    {tool.features.map((feature) => (
+                      <motion.li 
+                        key={feature} 
+                        className="flex items-center gap-3 text-base text-foreground/80 group-hover:text-foreground transition-colors duration-200"
+                        whileHover={{ x: 5 }}
+                        transition={{ duration: 0.2 }}
                       >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-8">
+                        <div className={`flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br ${tool.gradient} text-white text-xs`}>
+                          ✓
+                        </div>
+                        {feature}
+                      </motion.li>
+                    ))}
+                  </ul>
+
+                  {/* Action Button */}
                   <Link href={
                     tool.name === "Background Removal" 
                       ? "/tools/background-removal" 
@@ -158,28 +148,53 @@ export default function ToolsPage() {
                       ? "/tools/upscale"
                       : "/signup"
                   }>
-                    <Button className="btn-primary">Try {tool.name}</Button>
+                    <Button className={`w-full bg-gradient-to-r ${tool.gradient} hover:${tool.hoverGradient} text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group`}>
+                      <span className="flex items-center justify-center">
+                        Try {tool.name}
+                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      </span>
+                    </Button>
+                  </Link>
+                </div>
+
+                {/* Hover Effect Overlay */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${tool.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500 pointer-events-none`} />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* CTA Section */}
+          {!user && (
+            <motion.div 
+              className="mx-auto mt-24 max-w-2xl text-center relative"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent rounded-full blur-3xl -z-10" />
+              <div className="relative">
+                <h2 className="text-3xl font-bold tracking-tight text-foreground mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground via-primary to-foreground">
+                  Ready to get started?
+                </h2>
+                <p className="text-lg leading-8 text-foreground/80 mb-8">
+                  Sign up for a free account and start editing your images today.
+                </p>
+                <div>
+                  <Link href="/signup">
+                    <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group">
+                      <span className="flex items-center justify-center">
+                        Create Free Account
+                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      </span>
+                    </Button>
                   </Link>
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="mx-auto mt-16 max-w-2xl text-center">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              Ready to get started?
-            </h2>
-            <p className="mt-4 text-lg leading-8 text-foreground/80">
-              Sign up for a free account and start editing your images today.
-            </p>
-            <div className="mt-8">
-              <Link href="/signup">
-                <Button className="btn-primary">Create Free Account</Button>
-              </Link>
-            </div>
-          </div>
+            </motion.div>
+          )}
         </div>
       </main>
-      <footer className="border-t py-6 md:py-0">
+      <footer className="border-t border-gray-100/50 py-6 md:py-0">
         <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
           <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
             <p className="text-center text-sm leading-loose text-foreground/80 md:text-left">

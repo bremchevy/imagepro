@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const testimonials = [
   {
@@ -10,7 +11,8 @@ const testimonials = [
       name: "Sarah Chen",
       role: "Professional Photographer",
       image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
+      initials: "SC"
+    }
   },
   {
     content: "The background removal tool is a game-changer for my e-commerce business. It's fast and accurate.",
@@ -18,7 +20,8 @@ const testimonials = [
       name: "Michael Rodriguez",
       role: "E-commerce Store Owner",
       image: "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
+      initials: "MR"
+    }
   },
   {
     content: "I've tried many image processing tools, but this one stands out for its ease of use and quality results.",
@@ -26,60 +29,51 @@ const testimonials = [
       name: "Emily Thompson",
       role: "Digital Content Creator",
       image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
+      initials: "ET"
+    }
+  }
 ];
 
 export function Testimonials() {
   return (
-    <section className="container py-12 md:py-24 lg:py-32">
-      <div className="mx-auto flex max-w-[980px] flex-col items-center gap-4 py-8 md:py-12 md:pb-8 lg:py-24 lg:pb-20">
-        <h2 className="text-center text-4xl font-bold leading-tight tracking-tight text-foreground md:text-5xl lg:leading-[1.1]">
-          Loved by Professionals Worldwide
-        </h2>
-        <p className="max-w-[750px] text-center text-lg text-foreground/80 sm:text-xl">
-          See what our users have to say about their experience with our AI-powered image processing tools.
-        </p>
-      </div>
-      <div className="mx-auto grid justify-center gap-6 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3 lg:gap-8">
-        <div className="card animate-fade-in">
-          <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
-            <div className="space-y-2">
-              <p className="text-sm text-foreground/80">
-                "The AI-powered image enhancement is incredible. It's saved me countless hours of manual editing."
-              </p>
-              <div className="flex items-center space-x-2">
-                <div className="font-semibold text-foreground">Sarah Chen</div>
-                <div className="text-sm text-foreground/60">Professional Photographer</div>
-              </div>
-            </div>
-          </div>
+    <section className="py-24 sm:py-32">
+      <div className="container">
+        <div className="mx-auto max-w-2xl lg:text-center">
+          <h2 className="text-base font-semibold leading-7 text-primary">Testimonials</h2>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Loved by Professionals Worldwide
+          </p>
+          <p className="mt-6 text-lg leading-8 text-muted-foreground">
+            See what our users have to say about their experience with our AI-powered image processing tools.
+          </p>
         </div>
-        <div className="card animate-fade-in [animation-delay:200ms]">
-          <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
-            <div className="space-y-2">
-              <p className="text-sm text-foreground/80">
-                "The background removal tool is a game-changer for my e-commerce business. It's fast and accurate."
-              </p>
-              <div className="flex items-center space-x-2">
-                <div className="font-semibold text-foreground">Michael Rodriguez</div>
-                <div className="text-sm text-foreground/60">E-commerce Store Owner</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="card animate-fade-in [animation-delay:400ms]">
-          <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
-            <div className="space-y-2">
-              <p className="text-sm text-foreground/80">
-                "I've tried many image processing tools, but this one stands out for its ease of use and quality results."
-              </p>
-              <div className="flex items-center space-x-2">
-                <div className="font-semibold text-foreground">Emily Thompson</div>
-                <div className="text-sm text-foreground/60">Digital Content Creator</div>
-              </div>
-            </div>
-          </div>
+        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 grid-rows-1 gap-8 text-sm leading-6 sm:mt-20 sm:grid-cols-2 xl:mx-0 xl:max-w-none xl:grid-flow-col xl:grid-cols-3">
+          {testimonials.map((testimonial, index) => (
+            <motion.div
+              key={testimonial.author.name}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <Card className="relative">
+                <CardContent className="p-8">
+                  <div className="flex items-center gap-x-4">
+                    <Avatar>
+                      <AvatarImage src={testimonial.author.image} alt={testimonial.author.name} />
+                      <AvatarFallback>{testimonial.author.initials}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-semibold text-foreground">{testimonial.author.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {testimonial.author.role}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="mt-6 text-muted-foreground">{testimonial.content}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
