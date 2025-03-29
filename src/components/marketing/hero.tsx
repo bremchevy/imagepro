@@ -3,28 +3,27 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/auth-provider";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { Upload, Sparkles, ArrowRight, Download, Loader2, Image as ImageIcon, Maximize2, LogIn } from "lucide-react";
 import Image from "next/image";
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 export function Hero() {
   const { user } = useAuth();
+  const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  const { scrollY } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"]
-  });
-
-  const y = useTransform(scrollY, [0, 1000], [0, 200]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const handleAuthRedirect = (path: string) => {
+    // Store the current URL in sessionStorage to redirect back after auth
+    sessionStorage.setItem('redirectAfterAuth', '/dashboard');
+    router.push(path);
+  };
 
   const resetState = () => {
     setPreview(null);
@@ -74,7 +73,7 @@ export function Hero() {
   };
 
   return (
-    <section ref={containerRef} className="relative min-h-[90vh] flex items-center overflow-hidden bg-white">
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-white">
       {/* Animated Background Elements */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -162,10 +161,7 @@ export function Hero() {
       {/* Subtle Grid Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
       
-      <motion.div 
-        style={{ y, opacity }}
-        className="container relative"
-      >
+      <div className="container relative">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Section - Content */}
           <motion.div
@@ -489,24 +485,29 @@ export function Hero() {
                           >
                             <Upload className="mr-2 h-4 w-4" />
                             Try Another Image
-                          </Button>
+              </Button>
                         </div>
                       </div>
                     ) : (
                       <div className="space-y-4">
                         <p className="text-sm text-muted-foreground">Sign in to download your upscaled image</p>
                         <div className="flex gap-4 justify-center">
-                          <Link href="/login">
-                            <Button variant="outline" size="lg" className="bg-white hover:bg-gray-50">
-                              <LogIn className="mr-2 h-4 w-4" />
-                              Sign In
-                </Button>
-                  </Link>
-                            <Link href="/signup">
-                              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
-                                Create Account
-              </Button>
-                </Link>
+                          <Button 
+                            variant="outline" 
+                            size="lg" 
+                            className="bg-white hover:bg-gray-50"
+                            onClick={() => handleAuthRedirect('/login')}
+                          >
+                            <LogIn className="mr-2 h-4 w-4" />
+                            Sign In
+                          </Button>
+                          <Button 
+                            size="lg" 
+                            className="bg-primary hover:bg-primary/90 text-white"
+                            onClick={() => handleAuthRedirect('/signup')}
+                          >
+                            Create Account
+                          </Button>
                         </div>
                       </div>
                     )}
@@ -529,7 +530,7 @@ export function Hero() {
             </motion.div>
           </motion.div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 } 

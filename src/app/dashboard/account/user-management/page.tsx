@@ -7,9 +7,24 @@ import { ProfileCard } from '@/features/user-management/components/ProfileCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/components/providers/auth-provider';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function UserManagementPage() {
   const { profile, loading, refreshProfile } = useProfile();
+  const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
+
+  if (!user) {
+    return null;
+  }
 
   if (loading) {
     return (
@@ -49,19 +64,13 @@ export default function UserManagementPage() {
                 <TabsTrigger value="profile">Profile</TabsTrigger>
                 <TabsTrigger value="avatar">Avatar</TabsTrigger>
               </TabsList>
-
               <TabsContent value="profile">
                 <ProfileForm />
               </TabsContent>
-
               <TabsContent value="avatar">
-                <AvatarUpload
-                  currentAvatarUrl={profile?.avatar_url || null}
-                  onAvatarUpdate={(url) => {
-                    if (profile) {
-                      refreshProfile();
-                    }
-                  }}
+                <AvatarUpload 
+                  currentAvatarUrl={profile?.avatar_url || ''} 
+                  onAvatarUpdate={refreshProfile}
                 />
               </TabsContent>
             </Tabs>
