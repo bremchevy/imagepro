@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/auth-provider";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Zap, Wand2, Palette, Eraser, Upload, Sliders, Download, Share2, ZoomIn, Settings2, Image as ImageIcon, Layers, Crop, Brush, Wand2 as Wand2Icon, Sparkles as SparklesIcon, RefreshCw, Save, History } from "lucide-react";
+import { ArrowRight, Sparkles, Zap, Wand2, Palette, Eraser, Upload, Sliders, Download, Share2, ZoomIn, Settings2, Image as ImageIcon, Layers, Crop, Brush, Wand2 as Wand2Icon, Sparkles as SparklesIcon, RefreshCw, Save, History, Crown, Lock, X } from "lucide-react";
 import { useState, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -19,8 +19,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
+import { User, ImageProcessingHistoryItem } from "@/types/user";
+import { toast } from "sonner";
 
-const tools = [
+const allTools = [
   {
     id: "background-removal",
     name: "Background Remover",
@@ -28,7 +30,8 @@ const tools = [
     icon: <Eraser className="h-6 w-6" />,
     gradient: "from-blue-500 to-cyan-500",
     bgGradient: "from-blue-50 to-cyan-50",
-    states: ["original", "removed", "transparent"]
+    states: ["original", "removed", "transparent"],
+    isFree: true
   },
   {
     id: "upscale",
@@ -37,6 +40,7 @@ const tools = [
     icon: <Zap className="h-6 w-6" />,
     gradient: "from-purple-500 to-pink-500",
     bgGradient: "from-purple-50 to-pink-50",
+    isFree: false
   },
   {
     id: "object-removal",
@@ -45,20 +49,31 @@ const tools = [
     icon: <Wand2 className="h-6 w-6" />,
     gradient: "from-orange-500 to-red-500",
     bgGradient: "from-orange-50 to-red-50",
+    isFree: false
   }
 ];
 
 export default function ToolsPage() {
   const { user } = useAuth();
-  const [selectedTool, setSelectedTool] = useState(tools[0]);
+  const [selectedTool, setSelectedTool] = useState(allTools[0]);
   const [editCount, setEditCount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [processedImage, setProcessedImage] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [backgroundType, setBackgroundType] = useState("transparent");
+  const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const FREE_TRIAL_LIMIT = 10;
-  const WARNING_THRESHOLD = 7; // Show warning when 7 or fewer trials remain
+  const WARNING_THRESHOLD = 7;
   const [backgroundState, setBackgroundState] = useState("original");
+
+  // Show all tools but mark non-free ones as locked
+  const tools = allTools.map(tool => ({
+    ...tool,
+    isLocked: !user?.isPro && !tool.isFree
+  }));
 
   const progress = (editCount / FREE_TRIAL_LIMIT) * 100;
   const remainingTrials = FREE_TRIAL_LIMIT - editCount;
@@ -95,11 +110,108 @@ export default function ToolsPage() {
     
     setIsProcessing(true);
     try {
-      // Simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Convert base64 to blob
+      const response = await fetch(previewImage);
+      const blob = await response.blob();
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('image', blob, 'image.png');
+      formData.append('backgroundType', backgroundType);
+      
+      // Call background removal API
+      const apiResponse = await fetch('/api/background-removal', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!apiResponse.ok) {
+        const errorData = await apiResponse.json();
+        throw new Error(errorData.error || 'Failed to process image');
+      }
+      
+      const result = await apiResponse.json();
+      
+      // Update processed image with the result
+      setProcessedImage(result.processedImage);
       setEditCount(prev => prev + 1);
+      
+      // Add to history
+      if (user) {
+        const historyItem: ImageProcessingHistoryItem = {
+          id: Date.now().toString(),
+          toolId: selectedTool.id,
+          originalImage: previewImage,
+          processedImage: result.processedImage,
+          timestamp: new Date(),
+          settings: {
+            edgeDetection: 'auto',
+            backgroundType: backgroundType,
+            autoCrop: true
+          }
+        };
+        // Update user's history
+        user.imageProcessingHistory = [...(user.imageProcessingHistory || []), historyItem];
+      }
+
+      // Show success notification
+      toast.success("Image processed successfully!", {
+        description: "Your image has been processed and added to history.",
+        action: {
+          label: "View History",
+          onClick: () => setShowHistory(true),
+        },
+      });
+    } catch (error) {
+      console.error('Error processing image:', error);
+      // Show error notification with retry option
+      toast.error("Failed to process image", {
+        description: error instanceof Error ? error.message : "An error occurred while processing your image.",
+        action: {
+          label: "Retry",
+          onClick: handleProcessImage,
+        },
+      });
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleDownload = () => {
+    if (!processedImage) return;
+    
+    // Create a temporary link to download the image
+    const link = document.createElement('a');
+    link.href = processedImage;
+    link.download = `processed-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleHistoryDownload = (imageUrl: string) => {
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = `processed-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleBackgroundChange = (type: string) => {
+    setBackgroundType(type);
+    switch (type) {
+      case "transparent":
+        setBackgroundColor("transparent");
+        break;
+      case "white":
+        setBackgroundColor("#ffffff");
+        break;
+      case "black":
+        setBackgroundColor("#000000");
+        break;
+      default:
+        setBackgroundColor("#ffffff");
     }
   };
 
@@ -107,30 +219,34 @@ export default function ToolsPage() {
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-50/50 to-white">
       <main className="flex-1">
         <div className="container h-[calc(100vh-4rem)] py-1">
-          {/* Trial Counter - Fixed at top */}
-          {!user && (
-            <div className="fixed top-16 right-8 z-50 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg border border-gray-100">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
-                      Free Trials
-                    </Badge>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-3.5 w-3.5 text-gray-400" />
-                        </TooltipTrigger>
+          {/* Trial Counter - Only show for non-pro users */}
+          {!user?.isPro && (
+            <div className="fixed top-4 right-4 z-50">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-4 border border-gray-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
+                          Daily Free Trials
+                        </Badge>
                         <TooltipContent>
-                          <p>You have {remainingTrials} free trials remaining</p>
+                          <p>You get {FREE_TRIAL_LIMIT} free trials per day. Resets at midnight.</p>
                         </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <span className="text-lg font-bold text-primary">{remainingTrials}/10</span>
-                </div>
-                <Progress value={progress} className="h-1.5" />
-              </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Progress 
+                          value={(editCount / FREE_TRIAL_LIMIT) * 100} 
+                          className="w-24 h-1.5"
+                        />
+                        <span className="text-sm font-medium text-gray-600">
+                          {editCount}/{FREE_TRIAL_LIMIT}
+                        </span>
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           )}
 
@@ -163,6 +279,34 @@ export default function ToolsPage() {
             </motion.p>
           </div>
 
+          {/* Upgrade Banner - Only show for non-pro users */}
+          {!user?.isPro && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="mb-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Crown className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-900">Upgrade to Pro</h3>
+                    <p className="text-xs text-gray-600">Get unlimited access to all AI tools</p>
+                  </div>
+                </div>
+                <Button 
+                  className="bg-gradient-to-r from-primary to-primary/80 text-white shadow-md hover:shadow-lg"
+                  onClick={() => router.push('/pricing')}
+                >
+                  Upgrade Now
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
           {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100%-8rem)]">
             {/* Left Side - Preview Area */}
@@ -180,17 +324,54 @@ export default function ToolsPage() {
                   accept="image/*"
                   onChange={handleImageUpload}
                 />
-                {previewImage ? (
+                {processedImage ? (
+                  <div className="relative w-full h-full">
+                    <div 
+                      className="absolute inset-0 rounded-lg"
+                      style={{ backgroundColor: backgroundType === "transparent" ? "transparent" : backgroundColor }}
+                    />
+                    <Image
+                      src={processedImage}
+                      alt="Processed Result"
+                      fill
+                      className="object-cover rounded-lg transition-all duration-300"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                      <Button
+                        variant="secondary"
+                        className="bg-white text-gray-900 hover:bg-white/90"
+                        onClick={handleDownload}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Result
+                      </Button>
+                    </div>
+                  </div>
+                ) : previewImage ? (
                   <div className="relative w-full h-full">
                     <Image
                       src={previewImage}
                       alt="Preview"
                       fill
-                      className={`object-cover rounded-lg transition-all duration-300 ${
-                        backgroundState === "transparent" ? "bg-[url('/grid.svg')] bg-repeat" : ""
-                      }`}
+                      className="object-cover rounded-lg transition-all duration-300"
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
+                    {isProcessing && (
+                      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                        <div className="text-center">
+                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center">
+                            <RefreshCw className="h-6 w-6 text-white animate-spin" />
+                          </div>
+                          <p className="text-white text-sm font-medium">Processing your image...</p>
+                          <div className="mt-2 w-32 mx-auto">
+                            <Progress value={undefined} className="h-1 bg-white/20">
+                              <div className="h-full w-full bg-white/40 animate-pulse rounded-full" />
+                            </Progress>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
                       <p className="text-white text-sm font-medium">Click to change image</p>
                     </div>
@@ -215,33 +396,90 @@ export default function ToolsPage() {
                 </div>
               )}
 
-              {/* Background State Controls */}
-              {previewImage && selectedTool.id === "background-removal" && (
-                <div className="absolute bottom-4 left-4 right-4 flex gap-2">
-                  <Button
-                    variant={backgroundState === "original" ? "default" : "outline"}
-                    size="sm"
-                    className="flex-1 bg-white/90 backdrop-blur-sm"
-                    onClick={() => setBackgroundState("original")}
-                  >
-                    Original
-                  </Button>
-                  <Button
-                    variant={backgroundState === "removed" ? "default" : "outline"}
-                    size="sm"
-                    className="flex-1 bg-white/90 backdrop-blur-sm"
-                    onClick={() => setBackgroundState("removed")}
-                  >
-                    Removed
-                  </Button>
-                  <Button
-                    variant={backgroundState === "transparent" ? "default" : "outline"}
-                    size="sm"
-                    className="flex-1 bg-white/90 backdrop-blur-sm"
-                    onClick={() => setBackgroundState("transparent")}
-                  >
-                    Transparent
-                  </Button>
+              {/* History Section */}
+              {showHistory && (
+                <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-lg p-4 z-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <History className="h-4 w-4 text-gray-500" />
+                      <h3 className="text-sm font-semibold text-gray-900">Edit History</h3>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                      >
+                        <Save className="h-3.5 w-3.5 mr-1" />
+                        Save All
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowHistory(false)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-3 max-h-[calc(100%-4rem)] overflow-y-auto pr-2">
+                    {/* History Items */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {(user?.imageProcessingHistory || []).length === 0 ? (
+                        <div className="col-span-2 flex flex-col items-center justify-center py-12 px-4 text-center">
+                          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                            <History className="h-6 w-6 text-gray-400" />
+                          </div>
+                          <h4 className="text-sm font-medium text-gray-900 mb-1">No History Yet</h4>
+                          <p className="text-xs text-gray-500 max-w-[200px]">
+                            Your processed images will appear here. Start by processing your first image!
+                          </p>
+                        </div>
+                      ) : (
+                        (user?.imageProcessingHistory || []).map((item: ImageProcessingHistoryItem) => (
+                          <div key={item.id} className="group relative bg-white rounded-lg border border-gray-100 p-2 hover:border-primary/50 transition-all">
+                            <div className="relative aspect-square rounded-md overflow-hidden mb-2">
+                              <Image
+                                src={item.processedImage}
+                                alt="Processed image"
+                                fill
+                                className="object-cover"
+                              />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <div className="flex gap-2">
+                                  <Button 
+                                    variant="secondary" 
+                                    size="sm" 
+                                    className="h-8 w-8 p-0"
+                                    onClick={() => handleHistoryDownload(item.processedImage)}
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="secondary" size="sm" className="h-8 w-8 p-0">
+                                    <Share2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs font-medium text-gray-900">
+                                  {allTools.find(t => t.id === item.toolId)?.name || 'Unknown Tool'}
+                                </p>
+                                <Badge variant="secondary" className="text-[10px]">
+                                  {new Date(item.timestamp).toLocaleDateString()}
+                                </Badge>
+                              </div>
+                              <p className="text-[10px] text-gray-500">
+                                {new Date(item.timestamp).toLocaleTimeString()}
+                              </p>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -257,12 +495,17 @@ export default function ToolsPage() {
                     <TabsTrigger
                       key={tool.id}
                       value={tool.id}
-                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-md data-[state=active]:text-blue-500 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-all duration-200"
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-md data-[state=active]:text-blue-500 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-all duration-200 relative"
                     >
                       <div className={`p-0.5 rounded-md ${tool.gradient} text-white`}>
                         {tool.icon}
                       </div>
                       <span className="text-xs">{tool.name}</span>
+                      {tool.isLocked && (
+                        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-md flex items-center justify-center">
+                          <Lock className="h-3.5 w-3.5 text-gray-400" />
+                        </div>
+                      )}
                     </TabsTrigger>
                   ))}
                 </TabsList>
@@ -306,16 +549,46 @@ export default function ToolsPage() {
                                   <Palette className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Background Type</span>
                                 </div>
-                                <Select defaultValue="transparent">
-                                  <SelectTrigger className="h-7 w-[120px] text-xs">
-                                    <SelectValue placeholder="Transparent" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="transparent">Transparent</SelectItem>
-                                    <SelectItem value="white">White</SelectItem>
-                                    <SelectItem value="black">Black</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <div className="flex items-center gap-2">
+                                  <Select 
+                                    defaultValue={backgroundType} 
+                                    onValueChange={handleBackgroundChange}
+                                  >
+                                    <SelectTrigger className="h-7 w-[120px] text-xs">
+                                      <SelectValue placeholder="Transparent" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="transparent">
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-4 h-4 rounded border border-gray-200 bg-transparent" />
+                                          <span>Transparent</span>
+                                        </div>
+                                      </SelectItem>
+                                      <SelectItem value="white">
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-4 h-4 rounded border border-gray-200 bg-white" />
+                                          <span>White</span>
+                                        </div>
+                                      </SelectItem>
+                                      <SelectItem value="black">
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-4 h-4 rounded border border-gray-200 bg-black" />
+                                          <span>Black</span>
+                                        </div>
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="h-3.5 w-3.5 text-gray-400" />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Choose how you want the background to appear in your processed image</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
                               </div>
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
@@ -416,12 +689,17 @@ export default function ToolsPage() {
                           <Button 
                             className={`flex-1 bg-gradient-to-r ${tool.gradient} hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-sm py-1.5`}
                             onClick={handleProcessImage}
-                            disabled={!previewImage || isProcessing}
+                            disabled={!previewImage || isProcessing || tool.isLocked}
                           >
                             {isProcessing ? (
                               <div className="flex items-center gap-2">
                                 <RefreshCw className="h-4 w-4 animate-spin" />
                                 <span>Processing...</span>
+                              </div>
+                            ) : tool.isLocked ? (
+                              <div className="flex items-center gap-2">
+                                <Lock className="h-4 w-4" />
+                                <span>Pro Feature</span>
                               </div>
                             ) : (
                               <div className="flex items-center gap-2">
@@ -430,8 +708,8 @@ export default function ToolsPage() {
                               </div>
                             )}
                           </Button>
-                          {previewImage && (
-                            <div className="flex gap-1">
+                          <div className="flex gap-1">
+                            {previewImage && (
                               <Button 
                                 variant="outline" 
                                 size="sm"
@@ -440,24 +718,16 @@ export default function ToolsPage() {
                               >
                                 <Download className="h-4 w-4" />
                               </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="px-2"
-                                onClick={() => {/* Handle save */}}
-                              >
-                                <Save className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="px-2"
-                                onClick={() => {/* Handle history */}}
-                              >
-                                <History className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          )}
+                            )}
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="px-2"
+                              onClick={() => setShowHistory(true)}
+                            >
+                              <History className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
 
                         {/* Tool-specific Instructions */}
@@ -490,8 +760,8 @@ export default function ToolsPage() {
                               <p className="text-xs text-gray-600">4. Process and download your clean image</p>
                             </div>
                           )}
-                        </div>
-                      </div>
+                </div>
+              </div>
                     </Card>
                   </TabsContent>
                 ))}
@@ -503,18 +773,23 @@ export default function ToolsPage() {
           {editCount >= FREE_TRIAL_LIMIT && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
               <Card className="max-w-md w-full mx-4 p-6 bg-white/95 backdrop-blur-sm">
-                <h3 className="text-2xl font-semibold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">
-                  Upgrade to Continue
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  You've used all {FREE_TRIAL_LIMIT} free edits. Upgrade to our premium plan for unlimited access to all tools.
-                </p>
+                <div className="text-center mb-6">
+                  <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Crown className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">
+                    Daily Trial Limit Reached
+                  </h3>
+                  <p className="text-gray-600">
+                    You've used all {FREE_TRIAL_LIMIT} free trials for today. Upgrade to Pro for unlimited access to all tools.
+                  </p>
+                </div>
                 <div className="flex gap-4">
                   <Button 
                     className="flex-1 bg-gradient-to-r from-primary to-primary/80 text-white shadow-md hover:shadow-lg"
                     onClick={() => router.push('/pricing')}
                   >
-                    View Pricing
+                    Upgrade to Pro
                   </Button>
                   {!user && (
                     <Button 
