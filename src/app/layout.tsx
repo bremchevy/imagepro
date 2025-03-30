@@ -118,9 +118,6 @@ export default function RootLayout({
                   
                   <div className="mt-8 pt-6 border-t border-gray-100">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                      <p className="text-sm text-gray-600">
-                        © {new Date().getFullYear()} ImagePro. All rights reserved.
-                      </p>
                       <div className="flex items-center gap-4">
                         <Link href="https://twitter.com" className="text-gray-400 hover:text-primary">
                           <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
