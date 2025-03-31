@@ -8,8 +8,9 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Image, LayoutDashboard, Loader2, Settings } from "lucide-react";
+import { User, LogOut, Image, LayoutDashboard, Loader2, Settings, Menu, X } from "lucide-react";
 import { useProfile } from '@/features/user-management/hooks/useProfile';
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export function MarketingNav() {
   const pathname = usePathname();
@@ -30,6 +31,74 @@ export function MarketingNav() {
     }
   };
 
+  const NavLinks = () => (
+    <>
+      {isDashboard ? (
+        <>
+          <Link
+            href="/dashboard"
+            className={`nav-link ${
+              pathname === "/dashboard" ? "nav-link-active" : ""
+            }`}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            Dashboard
+          </Link>
+          <Link
+            href="/dashboard/images"
+            className={`nav-link ${
+              pathname === "/dashboard/images" ? "nav-link-active" : ""
+            }`}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <Image className="mr-2 h-4 w-4" />
+            My Images
+          </Link>
+        </>
+      ) : (
+        <>
+          <Link
+            href="/tools"
+            className={`nav-link ${
+              pathname === "/tools" ? "nav-link-active" : ""
+            }`}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Tools
+          </Link>
+          <Link
+            href="/pricing"
+            className={`nav-link ${
+              pathname === "/pricing" ? "nav-link-active" : ""
+            }`}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Pricing
+          </Link>
+          <Link
+            href="/about"
+            className={`nav-link ${
+              pathname === "/about" ? "nav-link-active" : ""
+            }`}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            About
+          </Link>
+          <Link
+            href="/contact"
+            className={`nav-link ${
+              pathname === "/contact" ? "nav-link-active" : ""
+            }`}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Contact
+          </Link>
+        </>
+      )}
+    </>
+  );
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="container mx-auto max-w-6xl">
@@ -42,103 +111,82 @@ export function MarketingNav() {
             >
               <span className="font-bold text-xl bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">ImagePro</span>
             </Link>
+            
+            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
-                  {isDashboard ? (
-                    <>
-                      <Link
-                        href="/dashboard"
-                        className={`nav-link ${
-                          pathname === "/dashboard" ? "nav-link-active" : ""
-                        }`}
-                      >
-                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                        Dashboard
-                      </Link>
-                      <Link
-                        href="/dashboard/images"
-                        className={`nav-link ${
-                          pathname === "/dashboard/images" ? "nav-link-active" : ""
-                        }`}
-                      >
-                        <Image className="mr-2 h-4 w-4" />
-                        My Images
-                      </Link>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        href="/tools"
-                        className={`nav-link ${
-                          pathname === "/tools" ? "nav-link-active" : ""
-                        }`}
-                      >
-                        Tools
-                      </Link>
-                      <Link
-                        href="/pricing"
-                        className={`nav-link ${
-                          pathname === "/pricing" ? "nav-link-active" : ""
-                        }`}
-                      >
-                        Pricing
-                      </Link>
-                      <Link
-                        href="/about"
-                        className={`nav-link ${
-                          pathname === "/about" ? "nav-link-active" : ""
-                        }`}
-                      >
-                        About
-                      </Link>
-                      <Link
-                        href="/contact"
-                        className={`nav-link ${
-                          pathname === "/contact" ? "nav-link-active" : ""
-                        }`}
-                      >
-                        Contact
-                      </Link>
-                    </>
-                  )}
-                </div>
+              <NavLinks />
+            </div>
           </div>
 
           {/* Right side - Auth elements */}
           <div className="flex items-center space-x-4">
             {!user ? (
               <>
-                <Link 
-                  href="/login" 
-                  className="text-sm font-medium transition-all duration-200 rounded-full hover:bg-primary/10 px-4 py-2"
-                >
-                  Log in
-                </Link>
-                <Button 
-                  className="text-sm font-medium transition-all duration-200 rounded-full hover:shadow-lg"
-                  onClick={() => router.push('/signup')}
-                >
-                  Get Started
-                </Button>
+                <div className="hidden md:flex items-center space-x-4">
+                  <Link 
+                    href="/login" 
+                    className="text-sm font-medium transition-all duration-200 rounded-full hover:bg-primary/10 px-4 py-2"
+                  >
+                    Log in
+                  </Link>
+                  <Button 
+                    className="text-sm font-medium transition-all duration-200 rounded-full hover:shadow-lg"
+                    onClick={() => router.push('/signup')}
+                  >
+                    Get Started
+                  </Button>
+                </div>
+                {/* Mobile Menu Button */}
+                <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="md:hidden">
+                      <Menu className="h-5 w-5" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                    <div className="flex flex-col space-y-4 mt-4">
+                      <NavLinks />
+                      <div className="flex flex-col space-y-2 pt-4 border-t">
+                        <Link 
+                          href="/login" 
+                          className="text-sm font-medium transition-all duration-200 rounded-full hover:bg-primary/10 px-4 py-2"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Log in
+                        </Link>
+                        <Button 
+                          className="text-sm font-medium transition-all duration-200 rounded-full hover:shadow-lg"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            router.push('/signup');
+                          }}
+                        >
+                          Get Started
+                        </Button>
+                      </div>
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </>
             ) : (
               <div className="flex items-center space-x-4">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Avatar className="h-8 w-8 hover:opacity-80 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all duration-200">
-                        {loading ? (
-                          <div className="flex items-center justify-center h-full w-full">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          </div>
-                        ) : (
-                          <>
-                            <AvatarImage src={profile?.avatar_url || ''} />
+                      {loading ? (
+                        <div className="flex items-center justify-center h-full w-full">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      ) : (
+                        <>
+                          <AvatarImage src={profile?.avatar_url || ''} />
                           <AvatarFallback className="bg-primary/10 text-primary">
-                              {user?.email?.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </>
-                        )}
-                      </Avatar>
-                    </DropdownMenuTrigger>
+                            {user?.email?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </>
+                      )}
+                    </Avatar>
+                  </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <div className="flex items-center justify-start gap-2 p-2">
                       <div className="flex flex-col space-y-1">
@@ -150,27 +198,27 @@ export function MarketingNav() {
                     </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleUserManagementClick}>
-                        <User className="mr-2 h-4 w-4" />
-                        User Management
-                      </DropdownMenuItem>
+                      <User className="mr-2 h-4 w-4" />
+                      User Management
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
                       <Settings className="mr-2 h-4 w-4" />
                       Settings
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={async () => {
-                          await signOut();
-                          router.push('/');
-                        }}
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        await signOut();
+                        router.push('/');
+                      }}
                       className="text-red-600 focus:text-red-600"
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sign Out
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             )}
           </div>
         </div>
