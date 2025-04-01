@@ -98,7 +98,7 @@ export default function SignUp() {
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-white to-gray-50/50 flex flex-col items-center justify-center p-4">
       <Card className="w-full max-w-[440px] p-8 shadow-xl border border-gray-100">
-        <div className="space-y-6">
+        <div className="space-y-5">
           <div className="space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
               Record your first video in seconds
@@ -118,7 +118,7 @@ export default function SignUp() {
             Sign up with Google
           </Button>
 
-          <div className="relative">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-gray-200" />
             </div>
@@ -159,7 +159,7 @@ export default function SignUp() {
               )}
             </Button>
 
-            <p className="text-xs text-gray-500 text-center px-6">
+            <p className="text-xs text-gray-500 text-center px-6 pt-2">
               By signing up, you acknowledge that you have read and understood, and agree to Acme's{' '}
               <Link href="/terms" className="text-primary hover:underline">Terms</Link>
               {' '}and{' '}
@@ -168,7 +168,7 @@ export default function SignUp() {
           </form>
         </div>
 
-        <div className="mt-6 text-center">
+        <div className="mt-8 pt-4 text-center border-t border-gray-100">
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
             <Link
