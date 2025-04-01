@@ -14,21 +14,16 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export function MarketingNav() {
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
-  const { profile, loading } = useProfile();
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isDashboard = pathname.startsWith('/dashboard');
+  const isLoading = authLoading || profileLoading;
 
-  const handleUserManagementClick = () => {
-    if (user) {
-      router.push('/dashboard/account/user-management');
-    } else {
-      // Store the intended destination
-      sessionStorage.setItem('redirectAfterAuth', '/dashboard/account/user-management');
-      router.push('/login');
-    }
+  const handleUserManagementClick = async () => {
+    router.push('/dashboard/account/user-management');
   };
 
   const NavLinks = () => (
@@ -36,24 +31,40 @@ export function MarketingNav() {
       {isDashboard ? (
         <>
           <Link
-            href="/dashboard"
+            href="/tools"
             className={`nav-link ${
-              pathname === "/dashboard" ? "nav-link-active" : ""
+              pathname === "/tools" ? "nav-link-active" : ""
             }`}
             onClick={() => setMobileMenuOpen(false)}
           >
-            <LayoutDashboard className="mr-2 h-4 w-4" />
-            Dashboard
+            Tools
           </Link>
           <Link
-            href="/dashboard/images"
+            href="/pricing"
             className={`nav-link ${
-              pathname === "/dashboard/images" ? "nav-link-active" : ""
+              pathname === "/pricing" ? "nav-link-active" : ""
             }`}
             onClick={() => setMobileMenuOpen(false)}
           >
-            <Image className="mr-2 h-4 w-4" />
-            My Images
+            Pricing
+          </Link>
+          <Link
+            href="/about"
+            className={`nav-link ${
+              pathname === "/about" ? "nav-link-active" : ""
+            }`}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            About
+          </Link>
+          <Link
+            href="/contact"
+            className={`nav-link ${
+              pathname === "/contact" ? "nav-link-active" : ""
+            }`}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Contact
           </Link>
         </>
       ) : (
@@ -120,18 +131,22 @@ export function MarketingNav() {
 
           {/* Right side - Auth elements */}
           <div className="flex items-center space-x-4">
-            {!user ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <Loader2 className="h-4 w-4 animate-spin" />
+              </div>
+            ) : !user ? (
               <>
                 <div className="hidden md:flex items-center space-x-4">
                   <Link 
-                    href="/login" 
+                    href="/auth/signin" 
                     className="text-sm font-medium transition-all duration-200 rounded-full hover:bg-primary/10 px-4 py-2"
                   >
                     Log in
                   </Link>
                   <Button 
                     className="text-sm font-medium transition-all duration-200 rounded-full hover:shadow-lg"
-                    onClick={() => router.push('/signup')}
+                    onClick={() => router.push('/auth/signup')}
                   >
                     Get Started
                   </Button>
@@ -148,7 +163,7 @@ export function MarketingNav() {
                       <NavLinks />
                       <div className="flex flex-col space-y-2 pt-4 border-t">
                         <Link 
-                          href="/login" 
+                          href="/auth/signin" 
                           className="text-sm font-medium transition-all duration-200 rounded-full hover:bg-primary/10 px-4 py-2"
                           onClick={() => setMobileMenuOpen(false)}
                         >
@@ -158,7 +173,7 @@ export function MarketingNav() {
                           className="text-sm font-medium transition-all duration-200 rounded-full hover:shadow-lg"
                           onClick={() => {
                             setMobileMenuOpen(false);
-                            router.push('/signup');
+                            router.push('/auth/signup');
                           }}
                         >
                           Get Started
@@ -173,7 +188,7 @@ export function MarketingNav() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Avatar className="h-8 w-8 hover:opacity-80 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all duration-200">
-                      {loading ? (
+                      {profileLoading ? (
                         <div className="flex items-center justify-center h-full w-full">
                           <Loader2 className="h-4 w-4 animate-spin" />
                         </div>
@@ -200,10 +215,6 @@ export function MarketingNav() {
                     <DropdownMenuItem onClick={handleUserManagementClick}>
                       <User className="mr-2 h-4 w-4" />
                       User Management
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem

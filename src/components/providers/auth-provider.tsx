@@ -16,6 +16,27 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const mapSupabaseUser = (supabaseUser: any): User | null => {
+  if (!supabaseUser) return null;
+  return {
+    ...supabaseUser,
+    isPro: false,
+    createdAt: new Date(),
+    lastLoginAt: new Date(),
+    trialCount: 0,
+    trialResetDate: new Date(),
+    subscriptionStatus: undefined,
+    subscriptionEndDate: undefined,
+    imageProcessingHistory: [],
+    preferences: {
+      defaultTool: undefined,
+      imageQuality: undefined,
+      autoSave: undefined,
+      notifications: undefined
+    }
+  };
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        setUser(session?.user ?? null);
+        setUser(mapSupabaseUser(session?.user));
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
@@ -37,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for changes on auth state (logged in, signed out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      setUser(mapSupabaseUser(session?.user));
       setLoading(false);
     });
 

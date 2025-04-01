@@ -10,8 +10,8 @@ export const useAvatarUpload = () => {
 
   const uploadAvatar = async (file: File): Promise<AvatarUploadResponse> => {
     if (!user) {
-      setError('User not authenticated');
-      return { url: '', error: 'User not authenticated' };
+      setError('Please sign in to upload an avatar');
+      return { url: '', error: 'Please sign in to upload an avatar' };
     }
 
     setIsUploading(true);
@@ -38,7 +38,7 @@ export const useAvatarUpload = () => {
 
   const deleteAvatar = async (avatarUrl: string): Promise<boolean> => {
     if (!user) {
-      setError('User not authenticated');
+      setError('Please sign in to delete an avatar');
       return false;
     }
 

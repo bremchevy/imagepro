@@ -3,129 +3,138 @@
 import { useProfile } from '@/features/user-management/hooks/useProfile';
 import { ProfileForm } from '@/features/user-management/components/ProfileForm';
 import { AvatarUpload } from '@/features/user-management/components/AvatarUpload';
-import { ProfileCard } from '@/features/user-management/components/ProfileCard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { EmailChangeForm } from '@/features/user-management/components/EmailChangeForm';
+import { PasswordChangeForm } from '@/features/user-management/components/PasswordChangeForm';
+import { NotificationPreferences } from '@/features/user-management/components/NotificationPreferences';
+import { TwoFactorAuth } from '@/features/user-management/components/TwoFactorAuth';
+import { AccountDeletion } from '@/features/user-management/components/AccountDeletion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/components/providers/auth-provider';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function UserManagementPage() {
-  const { profile, loading, refreshProfile } = useProfile();
-  const { user } = useAuth();
-  const router = useRouter();
+  const { profile, isLoading } = useProfile();
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/login');
-    }
-  }, [user, router]);
-
-  if (!user) {
-    return null;
-  }
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading profile...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-muted-foreground">Loading profile...</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
+    <div className="container mx-auto py-8 space-y-8">
+      <div>
         <h1 className="text-3xl font-bold">User Management</h1>
-        <p className="text-muted-foreground">Manage your profile information and preferences</p>
+        <p className="text-muted-foreground">
+          Manage your account settings and preferences
+        </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Profile Overview */}
-        <div className="md:col-span-2">
-          <ProfileCard />
-        </div>
+      <Tabs defaultValue="profile" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="preferences">Preferences</TabsTrigger>
+        </TabsList>
 
-        {/* Profile Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Settings</CardTitle>
-            <CardDescription>
-              Update your profile information and avatar
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="profile" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="profile">Profile</TabsTrigger>
-                <TabsTrigger value="avatar">Avatar</TabsTrigger>
-              </TabsList>
-              <TabsContent value="profile">
-                <ProfileForm />
-              </TabsContent>
-              <TabsContent value="avatar">
-                <AvatarUpload 
-                  currentAvatarUrl={profile?.avatar_url || ''} 
-                  onAvatarUpdate={refreshProfile}
-                />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+        <TabsContent value="profile" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Information</CardTitle>
+              <CardDescription>
+                Update your profile information and avatar
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <AvatarUpload
+                currentAvatarUrl={profile?.avatar_url}
+                onAvatarUpdate={() => {}}
+              />
+              <ProfileForm />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* Account Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Settings</CardTitle>
-            <CardDescription>
-              Manage your account preferences and security
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Email Notifications</h4>
+        <TabsContent value="security" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Security Settings</CardTitle>
+              <CardDescription>
+                Manage your account security settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Change Email</h3>
+                <EmailChangeForm />
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Change Password</h3>
+                <PasswordChangeForm />
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Two-Factor Authentication</h3>
+                <TwoFactorAuth />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Notification Preferences</CardTitle>
+              <CardDescription>
+                Choose what notifications you want to receive
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <NotificationPreferences />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="preferences" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Preferences</CardTitle>
+              <CardDescription>
+                Manage your account preferences and settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Theme</h3>
                   <p className="text-sm text-muted-foreground">
-                    Receive updates about your account
+                    Coming soon: Choose your preferred theme
                   </p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">Coming soon</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Two-Factor Authentication</h4>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Language</h3>
                   <p className="text-sm text-muted-foreground">
-                    Add an extra layer of security
+                    Coming soon: Select your preferred language
                   </p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">Coming soon</span>
-                </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Account Deletion</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Permanently delete your account
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">Coming soon</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Danger Zone</CardTitle>
+              <CardDescription>
+                Irreversible and destructive actions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AccountDeletion />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 

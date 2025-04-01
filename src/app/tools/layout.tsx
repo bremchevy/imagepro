@@ -4,7 +4,7 @@ export default function ToolsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 pb-32 min-h-screen">
       {children}
     </div>
   );

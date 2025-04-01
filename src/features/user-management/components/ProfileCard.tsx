@@ -1,42 +1,25 @@
 'use client';
 
 import { useProfile } from '../hooks/useProfile';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, MapPin, Calendar, User } from 'lucide-react';
-import { format } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { User } from 'lucide-react';
 
 export function ProfileCard() {
-  const { profile, loading, error } = useProfile();
+  const { profile, loading } = useProfile();
 
   if (loading) {
     return (
       <Card>
-        <CardContent className="flex items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="rounded-lg bg-destructive/10 p-4 text-destructive">
-            {error.message}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-muted-foreground">
-            No profile data available
+        <CardHeader>
+          <CardTitle>Profile Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="h-16 w-16 animate-pulse rounded-full bg-muted" />
+            <div className="space-y-2">
+              <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+              <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -46,41 +29,26 @@ export function ProfileCard() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={profile.avatar_url || ''} />
-            <AvatarFallback>
-              {profile.full_name?.[0] || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <CardTitle>{profile.full_name || 'Unnamed User'}</CardTitle>
-            <CardDescription>Member since {format(new Date(profile.created_at), 'MMMM yyyy')}</CardDescription>
-          </div>
-        </div>
+        <CardTitle>Profile Overview</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {profile.location && (
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <MapPin className="h-4 w-4" />
-            <span>{profile.location}</span>
+      <CardContent>
+        <div className="flex items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+            <User className="h-8 w-8 text-muted-foreground" />
           </div>
-        )}
-        
-        {profile.bio && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span className="font-medium">About</span>
-            </div>
-            <p className="text-muted-foreground">{profile.bio}</p>
+          <div>
+            <h3 className="font-medium">{profile?.full_name || 'Guest User'}</h3>
+            <p className="text-sm text-muted-foreground">
+              {profile?.location || 'No location set'}
+            </p>
           </div>
-        )}
-
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Calendar className="h-4 w-4" />
-          <span>Last updated {format(new Date(profile.updated_at), 'MMMM d, yyyy')}</span>
         </div>
+        {profile?.bio && (
+          <div className="mt-4">
+            <h4 className="text-sm font-medium">About</h4>
+            <p className="mt-1 text-sm text-muted-foreground">{profile.bio}</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

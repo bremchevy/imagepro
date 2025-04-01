@@ -2,6 +2,27 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+// Define public paths that don't require authentication
+const publicPaths = [
+  '/',
+  '/auth/signin',
+  '/auth/signup',
+  '/auth/verify',
+  '/auth/reset-password',
+  '/auth/update-password',
+  '/tools',
+  '/pricing',
+  '/about',
+  '/contact',
+  '/dashboard/account/user-management'
+]
+
+// Define dashboard paths that require authentication
+const dashboardPaths = [
+  '/dashboard/account',
+  '/dashboard/settings'
+]
+
 export async function middleware(req: NextRequest) {
   try {
     const res = NextResponse.next()
@@ -11,47 +32,35 @@ export async function middleware(req: NextRequest) {
       data: { session },
     } = await supabase.auth.getSession()
 
-    // Define public paths that don't require authentication
-    const publicPaths = [
-      '/',
-      '/login',
-      '/signup',
-      '/pricing',
-      '/contact',
-      '/about',
-      '/tools',
-      '/tools/background-removal',
-      '/dashboard/account/user-management'
-    ]
+    // Check if the current path is public
+    const isPublicPath = publicPaths.some(path => 
+      req.nextUrl.pathname === path || 
+      req.nextUrl.pathname.startsWith(path + '/')
+    )
 
-    // Define dashboard paths that require authentication
-    const dashboardPaths = [
-      '/dashboard',
-      '/dashboard/account',
-      '/dashboard/account/settings',
-      '/dashboard/profile',
-      '/dashboard/settings',
-      '/dashboard/images'
-    ]
+    // If it's a public path, allow access regardless of auth status
+    if (isPublicPath) {
+      return res
+    }
 
-    const isPublicPath = publicPaths.some(path => req.nextUrl.pathname.startsWith(path))
-    const isDashboardPath = dashboardPaths.some(path => req.nextUrl.pathname.startsWith(path))
+    // Check if the current path is a dashboard path
+    const isDashboardPath = dashboardPaths.some(path => 
+      req.nextUrl.pathname === path || 
+      req.nextUrl.pathname.startsWith(path + '/')
+    )
 
     // If user is not signed in and trying to access a dashboard path,
-    // redirect the user to /login
+    // redirect the user to /auth/signin
     if (!session && isDashboardPath) {
-      const redirectUrl = req.nextUrl.clone()
-      redirectUrl.pathname = '/login'
+      const redirectUrl = new URL('/auth/signin', req.url)
       redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname)
       return NextResponse.redirect(redirectUrl)
     }
 
     // If user is signed in and trying to access auth pages,
     // redirect the user to /dashboard
-    if (session && ['/login', '/signup'].includes(req.nextUrl.pathname)) {
-      const redirectUrl = req.nextUrl.clone()
-      redirectUrl.pathname = '/dashboard'
-      return NextResponse.redirect(redirectUrl)
+    if (session && (req.nextUrl.pathname.startsWith('/auth'))) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
     }
 
     // If user is signed in and trying to access user management,

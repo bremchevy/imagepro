@@ -254,7 +254,7 @@ export default function ToolsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-50/50 to-white">
       <main className="flex-1">
-        <div className="container h-[calc(100vh-4rem)] py-1">
+        <div className="container min-h-[calc(100vh-4rem)] py-4 md:py-6">
           {/* Free Trial Counter */}
           <div className="absolute top-4 right-4 md:top-4 md:right-20 z-10">
             <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-sm border border-gray-100">
@@ -280,21 +280,21 @@ export default function ToolsPage() {
           </div>
 
           {/* Header */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-4 md:mb-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-cyan-500/10 text-blue-600 mb-3"
+              className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-cyan-500/10 text-blue-600 mb-2 md:mb-3"
             >
-              <Sparkles className="h-4 w-4" />
-              <span className="text-sm font-medium">Professional AI Image Tools</span>
+              <Sparkles className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="text-xs md:text-sm font-medium">Professional AI Image Tools</span>
             </motion.div>
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-4xl font-bold tracking-tight text-gray-900 mb-3 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600"
+              className="text-2xl md:text-4xl font-bold tracking-tight text-gray-900 mb-2 md:mb-3 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600"
             >
               Transform Your Images with AI Magic
             </motion.h1>
@@ -302,7 +302,7 @@ export default function ToolsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-sm text-gray-600 max-w-2xl mx-auto leading-relaxed"
+              className="text-xs md:text-sm text-gray-600 max-w-2xl mx-auto leading-relaxed px-4 md:px-0"
             >
               Create stunning visuals in seconds with our powerful AI tools. Perfect for designers, photographers, and content creators.
             </motion.p>
@@ -314,20 +314,20 @@ export default function ToolsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="mb-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20"
+              className="mb-4 md:mb-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-3 md:p-4 border border-primary/20 mx-4 md:mx-0"
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Crown className="h-5 w-5 text-primary" />
+                <div className="flex items-center gap-2 md:gap-3">
+                  <div className="p-1.5 md:p-2 rounded-lg bg-primary/10">
+                    <Crown className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900">Upgrade to Pro</h3>
-                    <p className="text-xs text-gray-600">Get unlimited access to all AI tools</p>
+                    <h3 className="text-xs md:text-sm font-semibold text-gray-900">Upgrade to Pro</h3>
+                    <p className="text-[10px] md:text-xs text-gray-600">Get unlimited access to all AI tools</p>
                   </div>
                 </div>
                 <Button 
-                  className="bg-gradient-to-r from-primary to-primary/80 text-white shadow-md hover:shadow-lg"
+                  className="bg-gradient-to-r from-primary to-primary/80 text-white shadow-md hover:shadow-lg text-xs md:text-sm px-3 md:px-4"
                   onClick={() => router.push('/pricing')}
                 >
                   Upgrade Now
@@ -337,9 +337,9 @@ export default function ToolsPage() {
           )}
 
           {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100%-8rem)]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[calc(100vh-12rem)] md:min-h-[calc(100vh-16rem)] px-4 md:px-0">
             {/* Left Side - Preview Area */}
-            <div className="relative">
+            <div className="relative h-[300px] md:h-[400px] lg:h-full">
               <Card 
                 className="h-full flex items-center justify-center border-2 border-dashed border-gray-200 hover:border-primary/50 transition-all duration-300 cursor-pointer bg-white shadow-sm hover:shadow-md"
                 onClick={() => fileInputRef.current?.click()}
@@ -514,25 +514,25 @@ export default function ToolsPage() {
             </div>
 
             {/* Right Side - Tool Selection */}
-            <div className="space-y-4 h-full overflow-y-auto pr-2">
+            <div className="space-y-4 h-[calc(100vh-16rem)] md:h-[calc(100vh-20rem)] lg:h-full overflow-y-auto pr-2">
               <Tabs defaultValue={tools[0].id} className="w-full" onValueChange={(value) => {
                 const tool = tools.find(t => t.id === value);
                 if (tool) setSelectedTool(tool);
               }}>
-                <TabsList className="w-full justify-start bg-white p-0.5 rounded-lg shadow-sm border border-gray-100">
+                <TabsList className="w-full justify-start bg-white p-0.5 rounded-lg shadow-sm border border-gray-100 overflow-x-auto">
                   {tools.map((tool) => (
                     <TabsTrigger
                       key={tool.id}
                       value={tool.id}
-                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-md data-[state=active]:text-blue-500 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-all duration-200 relative"
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-md data-[state=active]:text-blue-500 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-all duration-200 relative min-w-[120px] md:min-w-0"
                     >
                       <div className={`p-0.5 rounded-md ${tool.gradient} text-white`}>
                         {tool.icon}
                       </div>
-                      <span className="text-xs">{tool.name}</span>
+                      <span className="text-[10px] md:text-xs">{tool.name}</span>
                       {tool.isLocked && (
                         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-md flex items-center justify-center">
-                          <Lock className="h-3.5 w-3.5 text-gray-400" />
+                          <Lock className="h-3 w-3 md:h-3.5 md:w-3.5 text-gray-400" />
                         </div>
                       )}
                     </TabsTrigger>
@@ -559,11 +559,11 @@ export default function ToolsPage() {
                             <>
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
-                                  <Settings2 className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">Edge Detection</span>
+                                  <Settings2 className="h-3.5 w-3.5 md:h-4 md:w-4 text-gray-500" />
+                                  <span className="text-[10px] md:text-xs font-medium text-gray-700">Edge Detection</span>
                                 </div>
                                 <Select defaultValue="auto">
-                                  <SelectTrigger className="h-7 w-[100px] text-xs">
+                                  <SelectTrigger className="h-6 md:h-7 w-[80px] md:w-[100px] text-[10px] md:text-xs">
                                     <SelectValue placeholder="Auto" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -576,7 +576,7 @@ export default function ToolsPage() {
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
                                   <Palette className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">Background Type</span>
+                                  <span className="text-[10px] md:text-xs font-medium text-gray-700">Background Type</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Select 
@@ -622,7 +622,7 @@ export default function ToolsPage() {
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
                                   <Crop className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">Auto Crop</span>
+                                  <span className="text-[10px] md:text-xs font-medium text-gray-700">Auto Crop</span>
                                 </div>
                                 <Switch className="h-4 w-7" />
                               </div>
@@ -634,10 +634,10 @@ export default function ToolsPage() {
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
                                   <ZoomIn className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">Scale Factor</span>
+                                  <span className="text-[10px] md:text-xs font-medium text-gray-700">Scale Factor</span>
                                 </div>
                                 <Select defaultValue="2x">
-                                  <SelectTrigger className="h-7 w-[80px] text-xs">
+                                  <SelectTrigger className="h-6 md:h-7 w-[80px] md:w-[100px] text-[10px] md:text-xs">
                                     <SelectValue placeholder="2x" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -651,10 +651,10 @@ export default function ToolsPage() {
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
                                   <Sliders className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">Quality</span>
+                                  <span className="text-[10px] md:text-xs font-medium text-gray-700">Quality</span>
                                 </div>
                                 <Select defaultValue="high">
-                                  <SelectTrigger className="h-7 w-[100px] text-xs">
+                                  <SelectTrigger className="h-6 md:h-7 w-[100px] md:w-[120px] text-[10px] md:text-xs">
                                     <SelectValue placeholder="High" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -667,7 +667,7 @@ export default function ToolsPage() {
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
                                   <SparklesIcon className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">Enhance Details</span>
+                                  <span className="text-[10px] md:text-xs font-medium text-gray-700">Enhance Details</span>
                                 </div>
                                 <Switch className="h-4 w-7" />
                               </div>
@@ -679,20 +679,20 @@ export default function ToolsPage() {
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
                                   <Brush className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">Brush Size</span>
+                                  <span className="text-[10px] md:text-xs font-medium text-gray-700">Brush Size</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Slider defaultValue={[50]} max={100} step={1} className="w-[120px]" />
-                                  <span className="text-xs text-gray-500 w-8 text-right">50%</span>
+                                  <span className="text-[10px] md:text-xs text-gray-500 w-8 text-right">50%</span>
                                 </div>
                               </div>
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
                                   <Wand2Icon className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">AI Mode</span>
+                                  <span className="text-[10px] md:text-xs font-medium text-gray-700">AI Mode</span>
                                 </div>
                                 <Select defaultValue="smart">
-                                  <SelectTrigger className="h-7 w-[100px] text-xs">
+                                  <SelectTrigger className="h-6 md:h-7 w-[100px] md:w-[120px] text-[10px] md:text-xs">
                                     <SelectValue placeholder="Smart" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -705,7 +705,7 @@ export default function ToolsPage() {
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
                                   <Layers className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">Layer Mode</span>
+                                  <span className="text-[10px] md:text-xs font-medium text-gray-700">Layer Mode</span>
                                 </div>
                                 <Switch className="h-4 w-7" />
                               </div>
@@ -716,23 +716,23 @@ export default function ToolsPage() {
                         {/* Action Buttons */}
                         <div className="flex gap-2">
                           <Button 
-                            className={`flex-1 bg-gradient-to-r ${tool.gradient} hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-sm py-1.5`}
+                            className={`flex-1 bg-gradient-to-r ${tool.gradient} hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs md:text-sm py-1.5`}
                             onClick={handleProcessImage}
                             disabled={!previewImage || isProcessing || tool.isLocked}
                           >
                             {isProcessing ? (
                               <div className="flex items-center gap-2">
-                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                <RefreshCw className="h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" />
                                 <span>Processing...</span>
                               </div>
                             ) : tool.isLocked ? (
                               <div className="flex items-center gap-2">
-                                <Lock className="h-4 w-4" />
+                                <Lock className="h-3.5 w-3.5 md:h-4 md:w-4" />
                                 <span>Pro Feature</span>
                               </div>
                             ) : (
                               <div className="flex items-center gap-2">
-                                <Wand2 className="h-4 w-4" />
+                                <Wand2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
                                 <span>Process Image</span>
                               </div>
                             )}
@@ -742,35 +742,35 @@ export default function ToolsPage() {
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                className="px-2"
+                                className="px-1.5 md:px-2"
                                 onClick={() => {/* Handle download */}}
                               >
-                                <Download className="h-4 w-4" />
+                                <Download className="h-3.5 w-3.5 md:h-4 md:w-4" />
                               </Button>
                             )}
                             <Button 
                               variant="outline" 
                               size="sm"
-                              className="px-2"
+                              className="px-1.5 md:px-2"
                               onClick={() => setShowHistory(true)}
                             >
-                              <History className="h-4 w-4" />
+                              <History className="h-3.5 w-3.5 md:h-4 md:w-4" />
                             </Button>
                           </div>
                         </div>
 
                         {/* Tool-specific Instructions */}
-                        <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+                        <div className="bg-gray-50 p-2 md:p-3 rounded-lg space-y-2">
                           <div className="flex items-center gap-2">
-                            <ImageIcon className="h-4 w-4 text-gray-500" />
-                            <h4 className="text-xs font-medium text-gray-700">Quick Guide</h4>
+                            <ImageIcon className="h-3.5 w-3.5 md:h-4 md:w-4 text-gray-500" />
+                            <h4 className="text-[10px] md:text-xs font-medium text-gray-700">Quick Guide</h4>
                           </div>
                           {tool.id === "background-removal" && (
-                            <div className="space-y-1.5">
-                              <p className="text-xs text-gray-600">1. Upload your image (PNG, JPG, or JPEG)</p>
-                              <p className="text-xs text-gray-600">2. Fine-tune edge detection for perfect results</p>
-                              <p className="text-xs text-gray-600">3. Choose your preferred background style</p>
-                              <p className="text-xs text-gray-600">4. Download your professional transparent image</p>
+                            <div className="space-y-1 md:space-y-1.5">
+                              <p className="text-[10px] md:text-xs text-gray-600">1. Upload your image (PNG, JPG, or JPEG)</p>
+                              <p className="text-[10px] md:text-xs text-gray-600">2. Fine-tune edge detection for perfect results</p>
+                              <p className="text-[10px] md:text-xs text-gray-600">3. Choose your preferred background style</p>
+                              <p className="text-[10px] md:text-xs text-gray-600">4. Download your professional transparent image</p>
                             </div>
                           )}
                           {tool.id === "upscale" && (
@@ -801,21 +801,21 @@ export default function ToolsPage() {
           {/* Upgrade Prompt Overlay */}
           {editCount >= FREE_TRIAL_LIMIT && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-              <Card className="max-w-md w-full mx-4 p-6 bg-white/95 backdrop-blur-sm">
-                <div className="text-center mb-6">
-                  <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Crown className="h-6 w-6 text-primary" />
+              <Card className="max-w-md w-full mx-4 p-4 md:p-6 bg-white/95 backdrop-blur-sm">
+                <div className="text-center mb-4 md:mb-6">
+                  <div className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-3 md:mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Crown className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                   </div>
-                  <h3 className="text-2xl font-semibold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">
+                  <h3 className="text-xl md:text-2xl font-semibold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">
                     Daily Trial Limit Reached
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-sm md:text-base text-gray-600">
                     You've used all {FREE_TRIAL_LIMIT} free trials for today. Upgrade to Pro for unlimited access to all tools.
                   </p>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex gap-3 md:gap-4">
                   <Button 
-                    className="flex-1 bg-gradient-to-r from-primary to-primary/80 text-white shadow-md hover:shadow-lg"
+                    className="flex-1 bg-gradient-to-r from-primary to-primary/80 text-white shadow-md hover:shadow-lg text-sm md:text-base"
                     onClick={() => router.push('/pricing')}
                   >
                     Upgrade to Pro
@@ -823,7 +823,7 @@ export default function ToolsPage() {
                   {!user && (
                     <Button 
                       variant="outline"
-                      className="flex-1"
+                      className="flex-1 text-sm md:text-base"
                       onClick={() => router.push('/signup')}
                     >
                       Sign Up Free

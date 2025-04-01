@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -14,7 +14,16 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { signIn } = useAuth();
+  const searchParams = useSearchParams();
+  const { signIn, user } = useAuth();
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    if (user) {
+      const redirectPath = searchParams.get('redirectedFrom') || '/tools';
+      router.push(redirectPath);
+    }
+  }, [user, router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +32,8 @@ export default function SignInPage() {
     try {
       await signIn(email, password);
       toast.success("Successfully signed in!");
-      router.push("/tools");
+      const redirectPath = searchParams.get('redirectedFrom') || '/tools';
+      router.push(redirectPath);
     } catch (error) {
       toast.error("Failed to sign in", {
         description: error instanceof Error ? error.message : "Please check your credentials and try again.",
