@@ -66,6 +66,11 @@ export function useProfile() {
       return () => {
         subscription.unsubscribe();
       };
+    } else {
+      // Set loading to false immediately if there's no user
+      setLoading(false);
+      setProfile(null);
+      localStorage.removeItem(PROFILE_STORAGE_KEY);
     }
   }, [user]);
 

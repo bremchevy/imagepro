@@ -9,18 +9,23 @@ export interface ImageProcessingHistoryItem {
   settings: Record<string, any>;
 }
 
-export interface User extends SupabaseUser {
+export interface User {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  avatar_url?: string;
   isPro: boolean;
   createdAt: Date;
   lastLoginAt: Date;
   trialCount: number;
   trialResetDate: Date;
-  subscriptionStatus?: 'active' | 'cancelled' | 'expired';
+  subscriptionStatus?: string;
   subscriptionEndDate?: Date;
-  imageProcessingHistory: ImageProcessingHistoryItem[];
+  imageProcessingHistory: any[];
   preferences: {
     defaultTool?: string;
-    imageQuality?: 'low' | 'medium' | 'high';
+    imageQuality?: string;
     autoSave?: boolean;
     notifications?: boolean;
   };

@@ -19,8 +19,10 @@ const publicPaths = [
 
 // Define dashboard paths that require authentication
 const dashboardPaths = [
-  '/dashboard/account',
-  '/dashboard/settings'
+  '/dashboard',
+  '/dashboard/images',
+  '/dashboard/settings',
+  '/dashboard/account'
 ]
 
 export async function middleware(req: NextRequest) {

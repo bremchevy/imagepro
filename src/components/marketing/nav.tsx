@@ -22,91 +22,83 @@ export function MarketingNav() {
   const isDashboard = pathname.startsWith('/dashboard');
   const isLoading = authLoading || profileLoading;
 
+  // Add debug logs
+  console.log('Auth State:', {
+    user,
+    authLoading,
+    profileLoading,
+    isLoading
+  });
+
   const handleUserManagementClick = async () => {
     router.push('/dashboard/account/user-management');
   };
 
   const NavLinks = () => (
     <>
-      {isDashboard ? (
-        <>
-          <Link
-            href="/tools"
-            className={`nav-link ${
-              pathname === "/tools" ? "nav-link-active" : ""
-            }`}
+                  {isDashboard ? (
+                    <>
+                      <Link
+                        href="/dashboard"
+                        className={`nav-link ${
+                          pathname === "/dashboard" ? "nav-link-active" : ""
+                        }`}
             onClick={() => setMobileMenuOpen(false)}
-          >
-            Tools
-          </Link>
-          <Link
-            href="/pricing"
-            className={`nav-link ${
-              pathname === "/pricing" ? "nav-link-active" : ""
-            }`}
+                      >
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        Dashboard
+                      </Link>
+                      <Link
+                        href="/dashboard/images"
+                        className={`nav-link ${
+                          pathname === "/dashboard/images" ? "nav-link-active" : ""
+                        }`}
             onClick={() => setMobileMenuOpen(false)}
-          >
-            Pricing
-          </Link>
-          <Link
-            href="/about"
-            className={`nav-link ${
-              pathname === "/about" ? "nav-link-active" : ""
-            }`}
+                      >
+                        <Image className="mr-2 h-4 w-4" />
+                        My Images
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/tools"
+                        className={`nav-link ${
+                          pathname === "/tools" ? "nav-link-active" : ""
+                        }`}
             onClick={() => setMobileMenuOpen(false)}
-          >
-            About
-          </Link>
-          <Link
-            href="/contact"
-            className={`nav-link ${
-              pathname === "/contact" ? "nav-link-active" : ""
-            }`}
+                      >
+                        Tools
+                      </Link>
+                      <Link
+                        href="/pricing"
+                        className={`nav-link ${
+                          pathname === "/pricing" ? "nav-link-active" : ""
+                        }`}
             onClick={() => setMobileMenuOpen(false)}
-          >
-            Contact
-          </Link>
-        </>
-      ) : (
-        <>
-          <Link
-            href="/tools"
-            className={`nav-link ${
-              pathname === "/tools" ? "nav-link-active" : ""
-            }`}
+                      >
+                        Pricing
+                      </Link>
+                      <Link
+                        href="/about"
+                        className={`nav-link ${
+                          pathname === "/about" ? "nav-link-active" : ""
+                        }`}
             onClick={() => setMobileMenuOpen(false)}
-          >
-            Tools
-          </Link>
-          <Link
-            href="/pricing"
-            className={`nav-link ${
-              pathname === "/pricing" ? "nav-link-active" : ""
-            }`}
+                      >
+                        About
+                      </Link>
+                      <Link
+                        href="/contact"
+                        className={`nav-link ${
+                          pathname === "/contact" ? "nav-link-active" : ""
+                        }`}
             onClick={() => setMobileMenuOpen(false)}
-          >
-            Pricing
-          </Link>
-          <Link
-            href="/about"
-            className={`nav-link ${
-              pathname === "/about" ? "nav-link-active" : ""
-            }`}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            About
-          </Link>
-          <Link
-            href="/contact"
-            className={`nav-link ${
-              pathname === "/contact" ? "nav-link-active" : ""
-            }`}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Contact
-          </Link>
-        </>
-      )}
+                      >
+                        Contact
+                      </Link>
+                    </>
+                  )}
     </>
   );
 
@@ -185,23 +177,23 @@ export function MarketingNav() {
               </>
             ) : (
               <div className="flex items-center space-x-4">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                     <Avatar className="h-8 w-8 hover:opacity-80 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all duration-200">
                       {profileLoading ? (
-                        <div className="flex items-center justify-center h-full w-full">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        </div>
-                      ) : (
-                        <>
-                          <AvatarImage src={profile?.avatar_url || ''} />
+                          <div className="flex items-center justify-center h-full w-full">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          </div>
+                        ) : (
+                          <>
+                            <AvatarImage src={profile?.avatar_url || ''} />
                           <AvatarFallback className="bg-primary/10 text-primary">
-                            {user?.email?.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </>
-                      )}
-                    </Avatar>
-                  </DropdownMenuTrigger>
+                              {user?.email?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </>
+                        )}
+                      </Avatar>
+                    </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <div className="flex items-center justify-start gap-2 p-2">
                       <div className="flex flex-col space-y-1">
@@ -213,23 +205,27 @@ export function MarketingNav() {
                     </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleUserManagementClick}>
-                      <User className="mr-2 h-4 w-4" />
-                      User Management
+                        <User className="mr-2 h-4 w-4" />
+                        User Management
+                      </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        await signOut();
-                        router.push('/');
-                      }}
+                      <DropdownMenuItem
+                        onClick={async () => {
+                          await signOut();
+                          router.push('/');
+                        }}
                       className="text-red-600 focus:text-red-600"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
             )}
           </div>
         </div>
