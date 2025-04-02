@@ -234,21 +234,53 @@ export default function ToolsPage() {
     document.body.removeChild(link);
   };
 
-  const handleBackgroundChange = (type: string) => {
+  const handleBackgroundChange = async (type: string) => {
     setBackgroundType(type);
+    if (!processedImage) return;
+
+    // Create a new image element
+    const img = new Image();
+    img.src = processedImage;
+
+    // Wait for image to load
+    await new Promise((resolve) => {
+      img.onload = resolve;
+    });
+
+    // Create canvas
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas size to match image
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    // Draw background based on type
     switch (type) {
       case "transparent":
-        setBackgroundColor("transparent");
+        // For transparent, we'll keep the alpha channel
+        ctx.drawImage(img, 0, 0);
         break;
       case "white":
-        setBackgroundColor("#ffffff");
+        // For white background
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
         break;
       case "black":
-        setBackgroundColor("#000000");
+        // For black background
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
         break;
       default:
-        setBackgroundColor("#ffffff");
+        ctx.drawImage(img, 0, 0);
     }
+
+    // Convert canvas to base64
+    const newImageUrl = canvas.toDataURL('image/png');
+    setProcessedImage(newImageUrl);
   };
 
   return (
