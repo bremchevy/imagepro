@@ -20,6 +20,7 @@ export function MarketingNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isDashboard = pathname.startsWith('/dashboard');
+  const isUserManagement = pathname === '/dashboard/account/user-management';
   const isLoading = authLoading || profileLoading;
 
   // Add debug logs
@@ -36,69 +37,66 @@ export function MarketingNav() {
 
   const NavLinks = () => (
     <>
-                  {isDashboard ? (
-                    <>
-                      <Link
-                        href="/dashboard"
-                        className={`nav-link ${
-                          pathname === "/dashboard" ? "nav-link-active" : ""
-                        }`}
+      {isDashboard && !isUserManagement ? (
+        <>
+          <Link
+            href="/dashboard"
+            className={`nav-link ${
+              pathname === "/dashboard" ? "nav-link-active" : ""
+            }`}
             onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                        Dashboard
-                      </Link>
-                      <Link
-                        href="/dashboard/images"
-                        className={`nav-link ${
-                          pathname === "/dashboard/images" ? "nav-link-active" : ""
-                        }`}
+          >
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            Dashboard
+          </Link>
+          <Link
+            href="/dashboard/images"
+            className={`nav-link ${
+              pathname === "/dashboard/images" ? "nav-link-active" : ""
+            }`}
             onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <Image className="mr-2 h-4 w-4" />
-                        My Images
-                      </Link>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        href="/tools"
-                        className={`nav-link ${
-                          pathname === "/tools" ? "nav-link-active" : ""
-                        }`}
-            onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Tools
-                      </Link>
-                      <Link
-                        href="/pricing"
-                        className={`nav-link ${
-                          pathname === "/pricing" ? "nav-link-active" : ""
-                        }`}
-            onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Pricing
-                      </Link>
-                      <Link
-                        href="/about"
-                        className={`nav-link ${
-                          pathname === "/about" ? "nav-link-active" : ""
-                        }`}
-            onClick={() => setMobileMenuOpen(false)}
-                      >
-                        About
-                      </Link>
-                      <Link
-                        href="/contact"
-                        className={`nav-link ${
-                          pathname === "/contact" ? "nav-link-active" : ""
-                        }`}
-            onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Contact
-                      </Link>
-                    </>
-                  )}
+          >
+            <Image className="mr-2 h-4 w-4" />
+            My Images
+          </Link>
+        </>
+      ) : null}
+      <Link
+        href="/tools"
+        className={`nav-link ${
+          pathname === "/tools" ? "nav-link-active" : ""
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        Tools
+      </Link>
+      <Link
+        href="/pricing"
+        className={`nav-link ${
+          pathname === "/pricing" ? "nav-link-active" : ""
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        Pricing
+      </Link>
+      <Link
+        href="/about"
+        className={`nav-link ${
+          pathname === "/about" ? "nav-link-active" : ""
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        About
+      </Link>
+      <Link
+        href="/contact"
+        className={`nav-link ${
+          pathname === "/contact" ? "nav-link-active" : ""
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        Contact
+      </Link>
     </>
   );
 

@@ -254,7 +254,7 @@ export default function ToolsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-50/50 to-white">
       <main className="flex-1">
-        <div className="container h-[calc(100vh-4rem)] py-1">
+        <div className="container min-h-[calc(100vh-8rem)] py-4 sm:py-8">
           {/* Free Trial Counter */}
           <div className="absolute top-4 right-4 md:top-4 md:right-20 z-10">
             <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-sm border border-gray-100">
@@ -280,21 +280,21 @@ export default function ToolsPage() {
           </div>
 
           {/* Header */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-4 sm:mb-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-cyan-500/10 text-blue-600 mb-3"
+              className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-cyan-500/10 text-blue-600 mb-2 sm:mb-3"
             >
-              <Sparkles className="h-4 w-4" />
-              <span className="text-sm font-medium">Professional AI Image Tools</span>
+              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="text-xs sm:text-sm font-medium">Professional AI Image Tools</span>
             </motion.div>
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-4xl font-bold tracking-tight text-gray-900 mb-3 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600"
+              className="text-2xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-2 sm:mb-3 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600"
             >
               Transform Your Images with AI Magic
             </motion.h1>
@@ -302,7 +302,7 @@ export default function ToolsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-sm text-gray-600 max-w-2xl mx-auto leading-relaxed"
+              className="text-xs sm:text-sm text-gray-600 max-w-2xl mx-auto leading-relaxed px-4"
             >
               Create stunning visuals in seconds with our powerful AI tools. Perfect for designers, photographers, and content creators.
             </motion.p>
@@ -314,7 +314,7 @@ export default function ToolsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="mb-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20"
+              className="mb-4 sm:mb-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-3 sm:p-4 border border-primary/20"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -337,9 +337,9 @@ export default function ToolsPage() {
           )}
 
           {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100%-8rem)]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Left Side - Preview Area */}
-            <div className="relative">
+            <div className="relative min-h-[300px] sm:min-h-[400px]">
               <Card 
                 className="h-full flex items-center justify-center border-2 border-dashed border-gray-200 hover:border-primary/50 transition-all duration-300 cursor-pointer bg-white shadow-sm hover:shadow-md"
                 onClick={() => fileInputRef.current?.click()}
@@ -417,17 +417,17 @@ export default function ToolsPage() {
 
               {/* Processing Indicator */}
               {isProcessing && (
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
-                  <div className="flex items-center gap-2">
+                <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white/90 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <div className="h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
-                    <span className="text-xs text-gray-600 font-medium">Processing...</span>
+                    <span className="text-[10px] sm:text-xs text-gray-600 font-medium">Processing...</span>
                   </div>
                 </div>
               )}
 
               {/* History Section */}
               {showHistory && (
-                <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-lg p-4 z-10">
+                <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-lg p-3 sm:p-4 z-10">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <History className="h-4 w-4 text-gray-500" />
@@ -514,7 +514,7 @@ export default function ToolsPage() {
             </div>
 
             {/* Right Side - Tool Selection */}
-            <div className="space-y-4 h-full overflow-y-auto pr-2">
+            <div className="space-y-3 sm:space-y-4">
               <Tabs defaultValue={tools[0].id} className="w-full" onValueChange={(value) => {
                 const tool = tools.find(t => t.id === value);
                 if (tool) setSelectedTool(tool);
@@ -524,15 +524,15 @@ export default function ToolsPage() {
                     <TabsTrigger
                       key={tool.id}
                       value={tool.id}
-                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-md data-[state=active]:text-blue-500 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-all duration-200 relative"
+                      className="flex-1 flex items-center justify-center gap-1 px-1.5 sm:px-2 py-1 rounded-md data-[state=active]:text-blue-500 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-all duration-200 relative"
                     >
                       <div className={`p-0.5 rounded-md ${tool.gradient} text-white`}>
                         {tool.icon}
                       </div>
-                      <span className="text-xs">{tool.name}</span>
+                      <span className="text-[10px] sm:text-xs">{tool.name}</span>
                       {tool.isLocked && (
                         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-md flex items-center justify-center">
-                          <Lock className="h-3.5 w-3.5 text-gray-400" />
+                          <Lock className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-gray-400" />
                         </div>
                       )}
                     </TabsTrigger>
@@ -789,8 +789,8 @@ export default function ToolsPage() {
                               <p className="text-xs text-gray-600">4. Process and download your clean image</p>
                             </div>
                           )}
-                </div>
-              </div>
+                        </div>
+                      </div>
                     </Card>
                   </TabsContent>
                 ))}
