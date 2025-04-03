@@ -34,22 +34,31 @@ const allTools = [
     isFree: true
   },
   {
-    id: "upscale",
-    name: "Image Upscaler",
-    description: "Enhance image quality up to 4x with advanced AI. Ideal for enlarging photos while preserving details.",
-    icon: <Zap className="h-6 w-6" />,
-    gradient: "from-purple-500 to-pink-500",
-    bgGradient: "from-purple-50 to-pink-50",
-    isFree: false
+    id: "image-converter",
+    name: "Image Converter",
+    description: "Convert images between different formats (PNG, JPG, JPEG, WebP) with high quality preservation.",
+    icon: <RefreshCw className="h-6 w-6" />,
+    gradient: "from-green-500 to-emerald-500",
+    bgGradient: "from-green-50 to-emerald-50",
+    isFree: true
   },
   {
-    id: "object-removal",
-    name: "Object Remover",
-    description: "Remove unwanted elements while maintaining image integrity. Great for cleaning up photos and removing distractions.",
-    icon: <Wand2 className="h-6 w-6" />,
+    id: "image-upscaler",
+    name: "Image Upscaler",
+    description: "Enhance image quality up to 4x with advanced AI. Ideal for enlarging photos while preserving details.",
+    icon: <ZoomIn className="h-6 w-6" />,
+    gradient: "from-purple-500 to-pink-500",
+    bgGradient: "from-purple-50 to-pink-50",
+    isFree: true
+  },
+  {
+    id: "image-enhancement",
+    name: "Image Enhancement",
+    description: "Improve image quality with AI-powered enhancements for brightness, contrast, and sharpness.",
+    icon: <Sparkles className="h-6 w-6" />,
     gradient: "from-orange-500 to-red-500",
     bgGradient: "from-orange-50 to-red-50",
-    isFree: false
+    isFree: true
   }
 ];
 
@@ -239,7 +248,7 @@ export default function ToolsPage() {
     if (!processedImage) return;
 
     // Create a new image element
-    const img = new Image();
+    const img = document.createElement('img');
     img.src = processedImage;
 
     // Wait for image to load
@@ -371,7 +380,7 @@ export default function ToolsPage() {
           {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Left Side - Preview Area */}
-            <div className="relative min-h-[300px] sm:min-h-[400px]">
+            <div className="relative min-h-[250px] sm:min-h-[300px]">
               <Card 
                 className="h-full flex items-center justify-center border-2 border-dashed border-gray-200 hover:border-primary/50 transition-all duration-300 cursor-pointer bg-white shadow-sm hover:shadow-md"
                 onClick={() => fileInputRef.current?.click()}
@@ -398,7 +407,7 @@ export default function ToolsPage() {
                       className="object-cover rounded-lg transition-all duration-300"
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 rounded-lg">
                       <Button
                         variant="secondary"
                         className="bg-white text-gray-900 hover:bg-white/90"
@@ -406,6 +415,17 @@ export default function ToolsPage() {
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Download Result
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="bg-white text-gray-900 hover:bg-white/90"
+                        onClick={() => {
+                          setProcessedImage(null);
+                          setPreviewImage(null);
+                        }}
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload New Image
                       </Button>
                     </div>
                   </div>
@@ -586,7 +606,7 @@ export default function ToolsPage() {
                         </div>
                         
                         {/* Tool Settings */}
-                        <div className="space-y-2 pt-1">
+                        <div className="space-y-2">
                           {tool.id === "background-removal" && (
                             <>
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
@@ -661,7 +681,45 @@ export default function ToolsPage() {
                             </>
                           )}
 
-                          {tool.id === "upscale" && (
+                          {tool.id === "image-converter" && (
+                            <>
+                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                                <div className="flex items-center gap-2">
+                                  <Settings2 className="h-4 w-4 text-gray-500" />
+                                  <span className="text-xs font-medium text-gray-700">Output Format</span>
+                                </div>
+                                <Select defaultValue="png">
+                                  <SelectTrigger className="h-7 w-[100px] text-xs">
+                                    <SelectValue placeholder="PNG" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="png">PNG</SelectItem>
+                                    <SelectItem value="jpg">JPG</SelectItem>
+                                    <SelectItem value="jpeg">JPEG</SelectItem>
+                                    <SelectItem value="webp">WebP</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                                <div className="flex items-center gap-2">
+                                  <Sliders className="h-4 w-4 text-gray-500" />
+                                  <span className="text-xs font-medium text-gray-700">Quality</span>
+                                </div>
+                                <Select defaultValue="high">
+                                  <SelectTrigger className="h-7 w-[100px] text-xs">
+                                    <SelectValue placeholder="High" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="low">Low</SelectItem>
+                                    <SelectItem value="medium">Medium</SelectItem>
+                                    <SelectItem value="high">High</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </>
+                          )}
+
+                          {tool.id === "image-upscaler" && (
                             <>
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
@@ -696,22 +754,15 @@ export default function ToolsPage() {
                                   </SelectContent>
                                 </Select>
                               </div>
-                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
-                                <div className="flex items-center gap-2">
-                                  <SparklesIcon className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">Enhance Details</span>
-                                </div>
-                                <Switch className="h-4 w-7" />
-                              </div>
                             </>
                           )}
 
-                          {tool.id === "object-removal" && (
+                          {tool.id === "image-enhancement" && (
                             <>
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
-                                  <Brush className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">Brush Size</span>
+                                  <Sliders className="h-4 w-4 text-gray-500" />
+                                  <span className="text-xs font-medium text-gray-700">Brightness</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Slider defaultValue={[50]} max={100} step={1} className="w-[120px]" />
@@ -720,28 +771,65 @@ export default function ToolsPage() {
                               </div>
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
-                                  <Wand2Icon className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">AI Mode</span>
+                                  <Sliders className="h-4 w-4 text-gray-500" />
+                                  <span className="text-xs font-medium text-gray-700">Contrast</span>
                                 </div>
-                                <Select defaultValue="smart">
-                                  <SelectTrigger className="h-7 w-[100px] text-xs">
-                                    <SelectValue placeholder="Smart" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="smart">Smart</SelectItem>
-                                    <SelectItem value="fast">Fast</SelectItem>
-                                    <SelectItem value="precise">Precise</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <div className="flex items-center gap-2">
+                                  <Slider defaultValue={[50]} max={100} step={1} className="w-[120px]" />
+                                  <span className="text-xs text-gray-500 w-8 text-right">50%</span>
+                                </div>
                               </div>
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
-                                  <Layers className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">Layer Mode</span>
+                                  <Sliders className="h-4 w-4 text-gray-500" />
+                                  <span className="text-xs font-medium text-gray-700">Sharpness</span>
                                 </div>
-                                <Switch className="h-4 w-7" />
+                                <div className="flex items-center gap-2">
+                                  <Slider defaultValue={[50]} max={100} step={1} className="w-[120px]" />
+                                  <span className="text-xs text-gray-500 w-8 text-right">50%</span>
+                                </div>
                               </div>
                             </>
+                          )}
+                        </div>
+
+                        {/* Tool-specific Instructions */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <ImageIcon className="h-4 w-4 text-gray-500" />
+                            <h4 className="text-xs font-medium text-gray-700">Quick Guide</h4>
+                          </div>
+                          {tool.id === "background-removal" && (
+                            <div className="space-y-1.5">
+                              <p className="text-xs text-gray-600">1. Upload your image (PNG, JPG, or JPEG)</p>
+                              <p className="text-xs text-gray-600">2. Fine-tune edge detection for perfect results</p>
+                              <p className="text-xs text-gray-600">3. Choose your preferred background style</p>
+                              <p className="text-xs text-gray-600">4. Download your professional transparent image</p>
+                            </div>
+                          )}
+                          {tool.id === "image-converter" && (
+                            <div className="space-y-1.5">
+                              <p className="text-xs text-gray-600">1. Upload your image</p>
+                              <p className="text-xs text-gray-600">2. Select your desired output format</p>
+                              <p className="text-xs text-gray-600">3. Adjust quality settings if needed</p>
+                              <p className="text-xs text-gray-600">4. Download your converted image</p>
+                            </div>
+                          )}
+                          {tool.id === "image-upscaler" && (
+                            <div className="space-y-1.5">
+                              <p className="text-xs text-gray-600">1. Upload your image (up to 10MB)</p>
+                              <p className="text-xs text-gray-600">2. Select your desired enlargement scale</p>
+                              <p className="text-xs text-gray-600">3. Choose quality settings</p>
+                              <p className="text-xs text-gray-600">4. Download your high-resolution image</p>
+                            </div>
+                          )}
+                          {tool.id === "image-enhancement" && (
+                            <div className="space-y-1.5">
+                              <p className="text-xs text-gray-600">1. Upload your image</p>
+                              <p className="text-xs text-gray-600">2. Adjust brightness, contrast, and sharpness</p>
+                              <p className="text-xs text-gray-600">3. Preview the changes in real-time</p>
+                              <p className="text-xs text-gray-600">4. Download your enhanced image</p>
+                            </div>
                           )}
                         </div>
 
@@ -789,38 +877,6 @@ export default function ToolsPage() {
                               <History className="h-4 w-4" />
                             </Button>
                           </div>
-                        </div>
-
-                        {/* Tool-specific Instructions */}
-                        <div className="bg-gray-50 p-3 rounded-lg space-y-2">
-                          <div className="flex items-center gap-2">
-                            <ImageIcon className="h-4 w-4 text-gray-500" />
-                            <h4 className="text-xs font-medium text-gray-700">Quick Guide</h4>
-                          </div>
-                          {tool.id === "background-removal" && (
-                            <div className="space-y-1.5">
-                              <p className="text-xs text-gray-600">1. Upload your image (PNG, JPG, or JPEG)</p>
-                              <p className="text-xs text-gray-600">2. Fine-tune edge detection for perfect results</p>
-                              <p className="text-xs text-gray-600">3. Choose your preferred background style</p>
-                              <p className="text-xs text-gray-600">4. Download your professional transparent image</p>
-                            </div>
-                          )}
-                          {tool.id === "upscale" && (
-                            <div className="space-y-1.5">
-                              <p className="text-xs text-gray-600">1. Upload your image (up to 10MB)</p>
-                              <p className="text-xs text-gray-600">2. Select your desired enlargement scale</p>
-                              <p className="text-xs text-gray-600">3. Enable AI enhancement for better quality</p>
-                              <p className="text-xs text-gray-600">4. Download your high-resolution image</p>
-                            </div>
-                          )}
-                          {tool.id === "object-removal" && (
-                            <div className="space-y-1.5">
-                              <p className="text-xs text-gray-600">1. Upload your image to get started</p>
-                              <p className="text-xs text-gray-600">2. Choose your preferred brush size</p>
-                              <p className="text-xs text-gray-600">3. Select AI mode for optimal results</p>
-                              <p className="text-xs text-gray-600">4. Process and download your clean image</p>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </Card>
