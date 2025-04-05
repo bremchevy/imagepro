@@ -85,12 +85,19 @@ export default function ImageUpscalerPage() {
   const handleDownload = () => {
     if (!processedImage) return;
     
+    // Create a temporary link element
     const link = document.createElement('a');
     link.href = processedImage;
     link.download = `upscaled-${Date.now()}.png`;
+    
+    // Append to body, click, and remove
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    
+    // Clean up after a short delay to ensure the download starts
+    setTimeout(() => {
+      document.body.removeChild(link);
+    }, 100);
   };
 
   const handleRemoveImage = () => {
@@ -181,39 +188,74 @@ export default function ImageUpscalerPage() {
                 </div>
                 
                 {processedImage && (
-                  <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                    <h3 className="text-lg font-medium mb-3 text-center">Compare Original vs Upscaled</h3>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Original</span>
-                      <span className="text-sm font-medium">Upscaled</span>
-                    </div>
-                    <div className="relative h-4 bg-gray-200 rounded-full mb-2">
+                  <div className="mt-6 border border-blue-200 rounded-lg p-4 bg-blue-50">
+                    <h3 className="text-lg font-medium mb-3 text-center text-blue-700">Compare Original vs Upscaled</h3>
+                    
+                    {/* Image Comparison */}
+                    <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden mb-4">
+                      <div className="absolute inset-0">
+                        <img
+                          src={processedImage}
+                          alt="Upscaled"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
                       <div 
-                        className="absolute h-full bg-blue-500 rounded-full"
+                        className="absolute inset-0 overflow-hidden"
                         style={{ width: `${comparisonPosition}%` }}
-                      />
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={comparisonPosition}
-                        onChange={(e) => setComparisonPosition(parseInt(e.target.value))}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      />
-                      <div 
-                        className="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-white border-2 border-blue-500 rounded-full shadow-md"
-                        style={{ left: `calc(${comparisonPosition}% - 12px)` }}
-                      />
-                    </div>
-                    <div className="flex justify-center">
-                      <Button
-                        onClick={() => setComparisonPosition(50)}
-                        variant="outline"
-                        size="sm"
-                        className="text-blue-600 border-blue-600 hover:bg-blue-50"
                       >
-                        Reset to Middle
-                      </Button>
+                        <img
+                          src={previewImage || ''}
+                          alt="Original"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div 
+                        className="absolute top-0 bottom-0 w-1 bg-blue-500 cursor-ew-resize"
+                        style={{ left: `${comparisonPosition}%` }}
+                      />
+                      <div className="absolute top-4 left-4 bg-white px-2 py-1 rounded text-sm font-medium shadow-sm">
+                        Original
+                      </div>
+                      <div className="absolute top-4 right-4 bg-white px-2 py-1 rounded text-sm font-medium shadow-sm">
+                        Upscaled
+                      </div>
+                    </div>
+                    
+                    {/* Slider Controls */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-blue-700">Original</span>
+                        <span className="text-sm font-medium text-blue-700">Upscaled</span>
+                      </div>
+                      <div className="relative h-4 bg-gray-200 rounded-full">
+                        <div 
+                          className="absolute h-full bg-blue-500 rounded-full"
+                          style={{ width: `${comparisonPosition}%` }}
+                        />
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={comparisonPosition}
+                          onChange={(e) => setComparisonPosition(parseInt(e.target.value))}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <div 
+                          className="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-white border-2 border-blue-500 rounded-full shadow-md"
+                          style={{ left: `calc(${comparisonPosition}% - 12px)` }}
+                        />
+                      </div>
+                      <div className="flex justify-center">
+                        <Button
+                          onClick={() => setComparisonPosition(50)}
+                          variant="outline"
+                          size="sm"
+                          className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                        >
+                          Reset to Middle
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}

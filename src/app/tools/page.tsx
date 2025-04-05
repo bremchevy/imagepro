@@ -266,7 +266,11 @@ export default function ToolsPage() {
     link.download = `processed-${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    
+    // Clean up after a short delay to ensure the download starts
+    setTimeout(() => {
+      document.body.removeChild(link);
+    }, 100);
   };
 
   const handleHistoryDownload = (imageUrl: string) => {
@@ -275,7 +279,11 @@ export default function ToolsPage() {
     link.download = `processed-${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    
+    // Clean up after a short delay to ensure the download starts
+    setTimeout(() => {
+      document.body.removeChild(link);
+    }, 100);
   };
 
   const handleBackgroundChange = async (type: string) => {
@@ -446,7 +454,10 @@ export default function ToolsPage() {
                       <Button
                         variant="secondary"
                         className="bg-white text-gray-900 hover:bg-white/90"
-                        onClick={handleDownload}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent event bubbling
+                          handleDownload();
+                        }}
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Download Result
@@ -454,7 +465,8 @@ export default function ToolsPage() {
                       <Button
                         variant="secondary"
                         className="bg-white text-gray-900 hover:bg-white/90"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent event bubbling
                           setProcessedImage(null);
                           setPreviewImage(null);
                         }}
@@ -914,16 +926,6 @@ export default function ToolsPage() {
                             )}
                           </Button>
                           <div className="flex gap-1">
-                            {previewImage && (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="px-2"
-                                onClick={() => {/* Handle download */}}
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
-                            )}
                             <Button 
                               variant="outline" 
                               size="sm"
