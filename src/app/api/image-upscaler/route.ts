@@ -43,22 +43,49 @@ export async function POST(request: NextRequest) {
     // Create a Sharp instance
     let sharpInstance = sharp(buffer);
 
-    // Apply advanced upscaling with optimal settings
+    // Step 1: Apply upscaling with optimal settings
     sharpInstance = sharpInstance
       .resize(newWidth, newHeight, {
         fit: 'fill',
         withoutEnlargement: false,
         kernel: 'lanczos3', // High-quality algorithm for upscaling
         position: 'center'
-      })
-      // Apply adaptive sharpening based on scale factor
-      .sharpen({
-        sigma: scale > 3 ? 1.2 : 0.8, // More sharpening for higher scale factors
-        m1: scale > 3 ? 1.2 : 1.0,    // Larger radius for higher scale factors
-        m2: scale > 3 ? 0.7 : 0.8     // Lower threshold for higher scale factors
       });
 
-    // Apply format-specific processing with optimal settings
+    // Step 2: Apply very subtle edge enhancement for natural-looking details
+    // Using a gentler kernel that won't create artificial sharpness
+    sharpInstance = sharpInstance
+      .convolve({
+        width: 3,
+        height: 3,
+        kernel: [
+          -0.5, -0.5, -0.5,
+          -0.5,  5, -0.5,
+          -0.5, -0.5, -0.5
+        ]
+      });
+
+    // Step 3: Apply very mild sharpening based on scale factor
+    // Much more conservative sharpening to avoid artificial look
+    const sharpeningSigma = scale > 3 ? 0.8 : scale > 2 ? 0.6 : 0.4;
+    const sharpeningM1 = scale > 3 ? 0.8 : scale > 2 ? 0.6 : 0.4;
+    const sharpeningM2 = scale > 3 ? 0.8 : scale > 2 ? 0.8 : 0.9;
+    
+    sharpInstance = sharpInstance.sharpen({
+      sigma: sharpeningSigma,
+      m1: sharpeningM1,
+      m2: sharpeningM2
+    });
+
+    // Step 4: Apply very subtle detail enhancement
+    // Minimal adjustments to preserve natural look
+    sharpInstance = sharpInstance
+      .modulate({
+        brightness: 1.02, // Very slight increase in brightness
+        saturation: 1.05  // Very slight increase in saturation
+      });
+
+    // Step 5: Apply format-specific processing with optimal settings
     if (format === 'jpeg' || format === 'jpg') {
       sharpInstance = sharpInstance.jpeg({ 
         quality: qualityValue,
