@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/auth-provider";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Zap, Wand2, Palette, Eraser, Upload, Sliders, Download, Share2, ZoomIn, Settings2, Image as ImageIcon, Layers, Crop, Brush, Wand2 as Wand2Icon, Sparkles as SparklesIcon, RefreshCw, Save, History, Crown, Lock, X } from "lucide-react";
+import { ArrowRight, Sparkles, Zap, Wand2, Palette, Eraser, Upload, Sliders, Download, Share2, ZoomIn, Settings2, Image as ImageIcon, Layers, Crop, Brush, Wand2 as Wand2Icon, Sparkles as SparklesIcon, RefreshCw, Save, History, Crown, Lock, X, Sun, Contrast } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -162,10 +162,45 @@ export default function ToolsPage() {
       // Create form data
       const formData = new FormData();
       formData.append('image', blob, 'image.png');
-      formData.append('backgroundType', backgroundType);
       
-      // Call background removal API
-      const apiResponse = await fetch('/api/background-removal', {
+      // Add tool-specific parameters
+      if (selectedTool.id === "background-removal") {
+        formData.append('backgroundType', backgroundType);
+      } else if (selectedTool.id === "image-upscaler") {
+        // Get scale factor and quality from the UI
+        const scaleFactorElement = document.querySelector('[data-tool="image-upscaler"] [data-value="scaleFactor"]') as HTMLSelectElement;
+        const qualityElement = document.querySelector('[data-tool="image-upscaler"] [data-value="quality"]') as HTMLSelectElement;
+        
+        const scaleFactor = scaleFactorElement?.value || "2x";
+        const quality = qualityElement?.value || "high";
+        
+        formData.append('scaleFactor', scaleFactor);
+        formData.append('quality', quality);
+      } else if (selectedTool.id === "image-enhancement") {
+        // Get enhancement parameters from the UI
+        const brightnessElement = document.querySelector('[data-tool="image-enhancement"] [data-value="brightness"]') as HTMLInputElement;
+        const contrastElement = document.querySelector('[data-tool="image-enhancement"] [data-value="contrast"]') as HTMLInputElement;
+        const sharpnessElement = document.querySelector('[data-tool="image-enhancement"] [data-value="sharpness"]') as HTMLInputElement;
+        
+        const brightness = brightnessElement?.value || "50";
+        const contrast = contrastElement?.value || "50";
+        const sharpness = sharpnessElement?.value || "50";
+        
+        formData.append('brightness', brightness);
+        formData.append('contrast', contrast);
+        formData.append('sharpness', sharpness);
+      }
+      
+      // Determine which API to call based on the selected tool
+      let apiEndpoint = '/api/background-removal';
+      if (selectedTool.id === "image-upscaler") {
+        apiEndpoint = '/api/image-upscaler';
+      } else if (selectedTool.id === "image-enhancement") {
+        apiEndpoint = '/api/image-enhancement';
+      }
+      
+      // Call the appropriate API
+      const apiResponse = await fetch(apiEndpoint, {
         method: 'POST',
         body: formData,
       });
@@ -380,7 +415,7 @@ export default function ToolsPage() {
           {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Left Side - Preview Area */}
-            <div className="relative min-h-[250px] sm:min-h-[300px]">
+            <div className="relative min-h-[180px] sm:min-h-[200px] lg:min-h-[300px]">
               <Card 
                 className="h-full flex items-center justify-center border-2 border-dashed border-gray-200 hover:border-primary/50 transition-all duration-300 cursor-pointer bg-white shadow-sm hover:shadow-md"
                 onClick={() => fileInputRef.current?.click()}
@@ -571,19 +606,16 @@ export default function ToolsPage() {
                 const tool = tools.find(t => t.id === value);
                 if (tool) setSelectedTool(tool);
               }}>
-                <TabsList className="w-full justify-start bg-white p-0.5 rounded-lg shadow-sm border border-gray-100">
+                <TabsList className="w-full flex flex-wrap bg-white/80 backdrop-blur-sm p-1.5 rounded-xl shadow-sm border border-gray-100">
                   {tools.map((tool) => (
                     <TabsTrigger
                       key={tool.id}
                       value={tool.id}
-                      className="flex-1 flex items-center justify-center gap-1 px-1.5 sm:px-2 py-1 rounded-md data-[state=active]:text-blue-500 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-all duration-200 relative"
+                      className="flex-1 min-w-[80px] flex items-center justify-center px-2 py-1.5 rounded-lg data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-all duration-200 relative hover:bg-gray-50"
                     >
-                      <div className={`p-0.5 rounded-md ${tool.gradient} text-white`}>
-                        {tool.icon}
-                      </div>
-                      <span className="text-[10px] sm:text-xs">{tool.name}</span>
+                      <span className="text-[10px] sm:text-xs font-medium text-center">{tool.name}</span>
                       {tool.isLocked && (
-                        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-md flex items-center justify-center">
+                        <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center">
                           <Lock className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-gray-400" />
                         </div>
                       )}
@@ -592,21 +624,21 @@ export default function ToolsPage() {
                 </TabsList>
 
                 {tools.map((tool) => (
-                  <TabsContent key={tool.id} value={tool.id} className="h-[calc(100%-2rem)]">
-                    <Card className="p-3 h-full bg-white border-0 shadow-sm">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <div className={`p-1.5 rounded-lg bg-gradient-to-r ${tool.gradient} text-white shadow-md`}>
+                  <TabsContent key={tool.id} value={tool.id} className="mt-3 sm:mt-4">
+                    <Card className="p-3 sm:p-4 bg-white/80 backdrop-blur-sm border-0 shadow-sm rounded-xl">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className={`p-1.5 sm:p-2 rounded-xl bg-gradient-to-r ${tool.gradient} text-white shadow-md`}>
                             {tool.icon}
                           </div>
                           <div>
-                            <h3 className="text-sm font-semibold text-gray-900">{tool.name}</h3>
-                            <p className="text-[10px] text-gray-600 mt-0.5">{tool.description}</p>
+                            <h3 className="text-sm sm:text-base font-semibold text-gray-900">{tool.name}</h3>
+                            <p className="text-[10px] sm:text-sm text-gray-600 mt-0.5">{tool.description}</p>
                           </div>
                         </div>
                         
                         {/* Tool Settings */}
-                        <div className="space-y-2">
+                        <div className="space-y-2 sm:space-y-3">
                           {tool.id === "background-removal" && (
                             <>
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
@@ -721,12 +753,12 @@ export default function ToolsPage() {
 
                           {tool.id === "image-upscaler" && (
                             <>
-                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors" data-tool="image-upscaler">
                                 <div className="flex items-center gap-2">
                                   <ZoomIn className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Scale Factor</span>
                                 </div>
-                                <Select defaultValue="2x">
+                                <Select defaultValue="2x" data-value="scaleFactor">
                                   <SelectTrigger className="h-7 w-[80px] text-xs">
                                     <SelectValue placeholder="2x" />
                                   </SelectTrigger>
@@ -738,12 +770,12 @@ export default function ToolsPage() {
                                   </SelectContent>
                                 </Select>
                               </div>
-                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors" data-tool="image-upscaler">
                                 <div className="flex items-center gap-2">
                                   <Sliders className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Quality</span>
                                 </div>
-                                <Select defaultValue="high">
+                                <Select defaultValue="high" data-value="quality">
                                   <SelectTrigger className="h-7 w-[100px] text-xs">
                                     <SelectValue placeholder="High" />
                                   </SelectTrigger>
@@ -759,34 +791,58 @@ export default function ToolsPage() {
 
                           {tool.id === "image-enhancement" && (
                             <>
-                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors" data-tool="image-enhancement">
                                 <div className="flex items-center gap-2">
-                                  <Sliders className="h-4 w-4 text-gray-500" />
+                                  <Sun className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Brightness</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Slider defaultValue={[50]} max={100} step={1} className="w-[120px]" />
-                                  <span className="text-xs text-gray-500 w-8 text-right">50%</span>
+                                  <span className="text-xs text-gray-500">0</span>
+                                  <input 
+                                    type="range" 
+                                    min="0" 
+                                    max="100" 
+                                    defaultValue="50" 
+                                    className="w-24 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                    data-value="brightness"
+                                  />
+                                  <span className="text-xs text-gray-500">100</span>
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors" data-tool="image-enhancement">
                                 <div className="flex items-center gap-2">
-                                  <Sliders className="h-4 w-4 text-gray-500" />
+                                  <Contrast className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Contrast</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Slider defaultValue={[50]} max={100} step={1} className="w-[120px]" />
-                                  <span className="text-xs text-gray-500 w-8 text-right">50%</span>
+                                  <span className="text-xs text-gray-500">0</span>
+                                  <input 
+                                    type="range" 
+                                    min="0" 
+                                    max="100" 
+                                    defaultValue="50" 
+                                    className="w-24 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                    data-value="contrast"
+                                  />
+                                  <span className="text-xs text-gray-500">100</span>
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors" data-tool="image-enhancement">
                                 <div className="flex items-center gap-2">
-                                  <Sliders className="h-4 w-4 text-gray-500" />
+                                  <Sparkles className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Sharpness</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Slider defaultValue={[50]} max={100} step={1} className="w-[120px]" />
-                                  <span className="text-xs text-gray-500 w-8 text-right">50%</span>
+                                  <span className="text-xs text-gray-500">0</span>
+                                  <input 
+                                    type="range" 
+                                    min="0" 
+                                    max="100" 
+                                    defaultValue="50" 
+                                    className="w-24 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                    data-value="sharpness"
+                                  />
+                                  <span className="text-xs text-gray-500">100</span>
                                 </div>
                               </div>
                             </>
@@ -796,8 +852,8 @@ export default function ToolsPage() {
                         {/* Tool-specific Instructions */}
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <ImageIcon className="h-4 w-4 text-gray-500" />
-                            <h4 className="text-xs font-medium text-gray-700">Quick Guide</h4>
+                            <ImageIcon className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-gray-500" />
+                            <h4 className="text-[10px] sm:text-xs font-medium text-gray-700">Quick Guide</h4>
                           </div>
                           {tool.id === "background-removal" && (
                             <div className="space-y-1.5">
@@ -836,7 +892,7 @@ export default function ToolsPage() {
                         {/* Action Buttons */}
                         <div className="flex gap-2">
                           <Button 
-                            className={`flex-1 bg-gradient-to-r ${tool.gradient} hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-sm py-1.5`}
+                            className={`flex-1 bg-gradient-to-r ${tool.gradient} hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm py-1.5`}
                             onClick={handleProcessImage}
                             disabled={!previewImage || isProcessing || tool.isLocked}
                           >
@@ -853,7 +909,7 @@ export default function ToolsPage() {
                             ) : (
                               <div className="flex items-center gap-2">
                                 <Wand2 className="h-4 w-4" />
-                                <span>Process Image</span>
+                                <span>{tool.id === "image-upscaler" ? "Upscale Image" : "Process Image"}</span>
                               </div>
                             )}
                           </Button>

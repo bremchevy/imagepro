@@ -3,84 +3,80 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sliders, ZoomIn, Download, History, Image as ImageIcon, Upload } from "lucide-react";
-import { useState, useRef } from "react";
+import { Sliders, ZoomIn, Download, History, Image as ImageIcon, Upload, ArrowRight, Settings2, X, RefreshCw } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { useDropzone } from "react-dropzone";
+import { Slider } from "@/components/ui/slider";
 
 export default function ImageUpscalerPage() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [scaleFactor, setScaleFactor] = useState("2x");
+  const [scaleFactor, setScaleFactor] = useState("2");
   const [quality, setQuality] = useState("high");
+  const [comparisonPosition, setComparisonPosition] = useState(50);
+  const [showComparison, setShowComparison] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop: (acceptedFiles) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreviewImage(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+  });
+
+  const handleSliderChange = (value: number[]) => {
+    setComparisonPosition(value[0]);
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleSliderTrackMouseDown = (e: React.MouseEvent) => {
+    if (sliderRef.current) {
+      const rect = sliderRef.current.getBoundingClientRect();
+      const position = ((e.clientX - rect.left) / rect.width) * 100;
+      setComparisonPosition(Math.max(0, Math.min(100, position)));
     }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
   };
 
   const handleProcessImage = async () => {
     if (!previewImage) return;
-    
+
     setIsProcessing(true);
     try {
       // Convert base64 to blob
       const response = await fetch(previewImage);
       const blob = await response.blob();
-      
-      // Create form data
+
       const formData = new FormData();
-      formData.append('image', blob, 'image.png');
-      formData.append('scaleFactor', scaleFactor);
-      formData.append('quality', quality);
-      
-      // Call image upscaler API
-      const apiResponse = await fetch('/api/image-upscaler', {
-        method: 'POST',
+      formData.append("image", blob);
+      formData.append("scaleFactor", scaleFactor);
+      formData.append("quality", quality);
+
+      const res = await fetch("/api/image-upscaler", {
+        method: "POST",
         body: formData,
       });
-      
-      if (!apiResponse.ok) {
-        const errorData = await apiResponse.json();
-        throw new Error(errorData.error || 'Failed to upscale image');
+
+      if (!res.ok) {
+        throw new Error("Failed to process image");
       }
-      
-      const result = await apiResponse.json();
-      setProcessedImage(result.processedImage);
-      
-      toast.success("Image upscaled successfully!", {
-        description: "Your image has been enhanced with AI upscaling.",
-      });
+
+      const data = await res.json();
+      setProcessedImage(data.processedImage);
+      setShowComparison(true);
+      setComparisonPosition(50);
     } catch (error) {
-      console.error('Error upscaling image:', error);
-      toast.error("Failed to upscale image", {
-        description: error instanceof Error ? error.message : "An error occurred while upscaling your image.",
-      });
+      console.error("Error processing image:", error);
+      toast.error("Failed to process image. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -97,206 +93,220 @@ export default function ImageUpscalerPage() {
     document.body.removeChild(link);
   };
 
-  return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-50/50 to-white">
-      <main className="flex-1">
-        <div className="container min-h-[calc(100vh-8rem)] py-4 sm:py-8">
-          {/* Header */}
-          <div className="text-center mb-4 sm:mb-6">
-            <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-2 sm:mb-3">
-              Image Upscaler
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-600 max-w-2xl mx-auto leading-relaxed px-4">
-              Enhance your image quality up to 4x with advanced AI technology.
-            </p>
-          </div>
+  const handleRemoveImage = () => {
+    setPreviewImage(null);
+    setProcessedImage(null);
+    setShowComparison(false);
+  };
 
-          {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            {/* Left Side - Preview Area */}
-            <div className="relative min-h-[300px] sm:min-h-[400px]">
-              <Card 
-                className="h-full flex items-center justify-center border-2 border-dashed border-gray-200 hover:border-primary/50 transition-all duration-300 cursor-pointer bg-white shadow-sm hover:shadow-md"
-                onClick={() => fileInputRef.current?.click()}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="flex flex-col items-center mb-8">
+        <h1 className="text-3xl font-bold mb-2">Image Upscaler</h1>
+        <p className="text-gray-600 text-center max-w-2xl">
+          Enhance your images by upscaling them to higher resolutions while maintaining quality.
+          Perfect for enlarging photos without losing clarity.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-4">Upload Image</h2>
+              <div
+                {...getRootProps()}
+                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors"
               >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                />
-                {processedImage ? (
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={processedImage}
-                      alt="Upscaled Result"
-                      fill
-                      className="object-cover rounded-lg transition-all duration-300"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                      <Button
-                        variant="secondary"
-                        className="bg-white text-gray-900 hover:bg-white/90"
-                        onClick={handleDownload}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download Result
-                      </Button>
-                    </div>
-                  </div>
-                ) : previewImage ? (
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={previewImage}
-                      alt="Preview"
-                      fill
-                      className="object-cover rounded-lg transition-all duration-300"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                    {isProcessing && (
-                      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-lg">
-                        <div className="text-center">
-                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center">
-                            <ZoomIn className="h-6 w-6 text-white animate-spin" />
-                          </div>
-                          <p className="text-white text-sm font-medium">Upscaling your image...</p>
-                          <div className="mt-2 w-32 mx-auto">
-                            <Progress value={undefined} className="h-1 bg-white/20">
-                              <div className="h-full w-full bg-white/40 animate-pulse rounded-full" />
-                            </Progress>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                      <p className="text-white text-sm font-medium">Click to change image</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <Upload className="mx-auto h-10 w-10 text-gray-400" />
-                    <p className="mt-3 text-sm text-gray-600 font-medium">
-                      Drag and drop your image here, or click to upload
-                    </p>
-                  </div>
-                )}
-              </Card>
+                <input {...getInputProps()} ref={fileInputRef} />
+                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 mb-2">
+                  Drag & drop your image here, or click to select
+                </p>
+                <p className="text-xs text-gray-500">
+                  Supports JPG, PNG, WebP (Max 10MB)
+                </p>
+              </div>
             </div>
 
-            {/* Right Side - Tool Settings */}
-            <Card className="p-3 h-full bg-white border-0 shadow-sm">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md">
-                    <ZoomIn className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900">Image Upscaler</h3>
-                    <p className="text-[10px] text-gray-600 mt-0.5">
-                      Enhance image quality up to 4x with advanced AI
-                    </p>
-                  </div>
-                </div>
-
-                {/* Tool Settings */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <ZoomIn className="h-4 w-4 text-gray-500" />
-                      <span className="text-xs font-medium text-gray-700">Scale Factor</span>
-                    </div>
-                    <Select defaultValue={scaleFactor} onValueChange={setScaleFactor}>
-                      <SelectTrigger className="h-7 w-[80px] text-xs">
-                        <SelectValue placeholder="2x" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1.5x">1.5x</SelectItem>
-                        <SelectItem value="2x">2x</SelectItem>
-                        <SelectItem value="3x">3x</SelectItem>
-                        <SelectItem value="4x">4x</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <Sliders className="h-4 w-4 text-gray-500" />
-                      <span className="text-xs font-medium text-gray-700">Quality</span>
-                    </div>
-                    <Select defaultValue={quality} onValueChange={setQuality}>
-                      <SelectTrigger className="h-7 w-[100px] text-xs">
-                        <SelectValue placeholder="High" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Instructions */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <ImageIcon className="h-4 w-4 text-gray-500" />
-                    <h4 className="text-xs font-medium text-gray-700">Quick Guide</h4>
-                  </div>
-                  <div className="space-y-1.5">
-                    <p className="text-xs text-gray-600">1. Upload your image (up to 10MB)</p>
-                    <p className="text-xs text-gray-600">2. Select your desired enlargement scale</p>
-                    <p className="text-xs text-gray-600">3. Choose quality settings</p>
-                    <p className="text-xs text-gray-600">4. Download your high-resolution image</p>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  <Button 
-                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-sm py-1.5"
-                    onClick={handleProcessImage}
-                    disabled={!previewImage || isProcessing}
-                  >
-                    {isProcessing ? (
-                      <div className="flex items-center gap-2">
-                        <ZoomIn className="h-4 w-4 animate-spin" />
-                        <span>Upscaling...</span>
+            {previewImage && (
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold mb-4">
+                  {processedImage ? "Image Comparison" : "Preview"}
+                </h2>
+                <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                  {processedImage ? (
+                    <>
+                      <div className="absolute inset-0">
+                        <img
+                          src={processedImage}
+                          alt="Upscaled"
+                          className="w-full h-full object-contain"
+                        />
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <ZoomIn className="h-4 w-4" />
-                        <span>Upscale Image</span>
-                      </div>
-                    )}
-                  </Button>
-                  <div className="flex gap-1">
-                    {previewImage && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="px-2"
-                        onClick={handleDownload}
+                      <div 
+                        className="absolute inset-0 overflow-hidden"
+                        style={{ width: `${comparisonPosition}%` }}
                       >
-                        <Download className="h-4 w-4" />
+                        <img
+                          src={previewImage || ''}
+                          alt="Original"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div 
+                        className="absolute top-0 bottom-0 w-1 bg-blue-500 cursor-ew-resize"
+                        style={{ left: `${comparisonPosition}%` }}
+                      />
+                      <div className="absolute top-4 left-4 bg-white px-2 py-1 rounded text-sm font-medium shadow-sm">
+                        Original
+                      </div>
+                      <div className="absolute top-4 right-4 bg-white px-2 py-1 rounded text-sm font-medium shadow-sm">
+                        Upscaled
+                      </div>
+                    </>
+                  ) : (
+                    <img
+                      src={previewImage}
+                      alt="Preview"
+                      className="w-full h-full object-contain"
+                    />
+                  )}
+                  <button
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+                  >
+                    <X className="h-4 w-4 text-gray-600" />
+                  </button>
+                </div>
+                
+                {processedImage && (
+                  <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <h3 className="text-lg font-medium mb-3 text-center">Compare Original vs Upscaled</h3>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Original</span>
+                      <span className="text-sm font-medium">Upscaled</span>
+                    </div>
+                    <div className="relative h-4 bg-gray-200 rounded-full mb-2">
+                      <div 
+                        className="absolute h-full bg-blue-500 rounded-full"
+                        style={{ width: `${comparisonPosition}%` }}
+                      />
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={comparisonPosition}
+                        onChange={(e) => setComparisonPosition(parseInt(e.target.value))}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <div 
+                        className="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-white border-2 border-blue-500 rounded-full shadow-md"
+                        style={{ left: `calc(${comparisonPosition}% - 12px)` }}
+                      />
+                    </div>
+                    <div className="flex justify-center">
+                      <Button
+                        onClick={() => setComparisonPosition(50)}
+                        variant="outline"
+                        size="sm"
+                        className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                      >
+                        Reset to Middle
                       </Button>
-                    )}
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="px-2"
-                    >
-                      <History className="h-4 w-4" />
-                    </Button>
+                    </div>
                   </div>
+                )}
+              </div>
+            )}
+
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-4">Settings</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Scale Factor
+                  </label>
+                  <select
+                    value={scaleFactor}
+                    onChange={(e) => setScaleFactor(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    data-tool="image-upscaler"
+                    data-value="scaleFactor"
+                  >
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2x</option>
+                    <option value="3">3x</option>
+                    <option value="4">4x</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Quality
+                  </label>
+                  <select
+                    value={quality}
+                    onChange={(e) => setQuality(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    data-tool="image-upscaler"
+                    data-value="quality"
+                  >
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
                 </div>
               </div>
-            </Card>
+            </div>
+
+            <div className="flex justify-center">
+              <Button
+                onClick={handleProcessImage}
+                disabled={!previewImage || isProcessing}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md flex items-center gap-2"
+              >
+                {isProcessing ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <ZoomIn className="h-4 w-4" />
+                    Upscale Image
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            {processedImage && (
+              <div className="mt-6 flex justify-center gap-4">
+                <Button
+                  onClick={handleDownload}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Upscaled Image
+                </Button>
+              </div>
+            )}
           </div>
         </div>
-      </main>
+
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
+            <h2 className="text-xl font-semibold mb-4">Instructions</h2>
+            <ol className="list-decimal list-inside space-y-2 text-gray-700">
+              <li>Upload an image you want to upscale</li>
+              <li>Choose your desired scale factor (1.5x to 4x)</li>
+              <li>Select the quality level (higher quality = larger file size)</li>
+              <li>Click "Upscale Image" to process</li>
+              <li>Use the slider to compare original and upscaled images</li>
+              <li>Download your upscaled image when satisfied</li>
+            </ol>
+          </div>
+        </div>
+      </div>
     </div>
   );
 } 
