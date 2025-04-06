@@ -22,6 +22,7 @@ import { Info } from "lucide-react";
 import { User, ImageProcessingHistoryItem } from "@/types/user";
 import { toast } from "sonner";
 import { upscaleImage } from '@/utils/imageUpscaler';
+import { convertImage } from '@/utils/imageConverter';
 
 const allTools = [
   {
@@ -174,7 +175,7 @@ export default function ToolsPage() {
       
       // Add tool-specific parameters
       if (selectedTool.id === "background-removal") {
-      formData.append('backgroundType', backgroundType);
+        formData.append('backgroundType', backgroundType);
       } else if (selectedTool.id === "image-upscaler") {
         // Get scale factor and quality from the UI
         const scaleFactorElement = document.querySelector('[data-value="scaleFactor"]') as HTMLSelectElement;
@@ -218,12 +219,66 @@ export default function ToolsPage() {
         formData.append('contrast', contrast);
         formData.append('sharpness', sharpness);
       } else if (selectedTool.id === "image-converter") {
-        // Get output format from the UI
+        // Get output format and quality from the UI
         const outputFormatElement = document.querySelector('[data-value="outputFormat"]') as HTMLSelectElement;
-        const outputFormat = outputFormatElement?.value || "png";
+        const qualityElement = document.querySelector('[data-value="quality"]') as HTMLSelectElement;
         
-        console.log(`Converting image to format: ${outputFormat}`);
-        formData.append('outputFormat', outputFormat);
+        console.log('Output format element:', outputFormatElement);
+        console.log('Quality element:', qualityElement);
+        
+        const outputFormat = outputFormatElement?.value || "png";
+        const quality = qualityElement?.value || "high";
+        
+        console.log(`Selected format: ${outputFormat}, quality: ${quality}`);
+        
+        // Get the image file
+        const imageFile = formData.get('image') as File;
+        
+        try {
+          // Process image client-side
+          const processedImage = await convertImage(imageFile, {
+            outputFormat: outputFormat as 'png' | 'jpg' | 'jpeg' | 'webp' | 'gif' | 'tiff' | 'avif' | 'heic',
+            quality: quality as 'low' | 'medium' | 'high'
+          });
+          
+          console.log(`Successfully converted image to ${outputFormat}`);
+          
+          // Update the UI with the processed image
+          setProcessedImage(processedImage);
+          setShowComparison(false);
+          setIsProcessing(false);
+          
+          // Add to history
+          if (user) {
+            const historyItem: ImageProcessingHistoryItem = {
+              id: Date.now().toString(),
+              toolId: selectedTool.id,
+              originalImage: previewImage,
+              processedImage: processedImage,
+              timestamp: new Date(),
+              settings: {
+                outputFormat,
+                quality
+              }
+            };
+            // Update user's history
+            user.imageProcessingHistory = [...(user.imageProcessingHistory || []), historyItem];
+          }
+          
+          // Show success notification
+          toast.success("Image converted successfully!", {
+            description: `Your image has been converted to ${outputFormat.toUpperCase()}.`,
+            action: {
+              label: "View History",
+              onClick: () => setShowHistory(true),
+            },
+          });
+          
+          return;
+        } catch (error) {
+          console.error('Error converting image:', error);
+          throw new Error('Failed to convert image');
+        }
       }
       
       // Determine which API to call based on the selected tool
@@ -253,8 +308,11 @@ export default function ToolsPage() {
       setProcessedImage(result.processedImage);
       setEditCount(prev => prev + 1);
       
-      // Enable comparison view when we have both images
-      if (previewImage && result.processedImage) {
+      // For image converter, we don't show comparison view
+      if (selectedTool.id === "image-converter") {
+        setShowComparison(false);
+      } else if (previewImage && result.processedImage) {
+        // Enable comparison view when we have both images
         setShowComparison(true);
       }
       
@@ -302,18 +360,36 @@ export default function ToolsPage() {
   const handleDownload = () => {
     if (!processedImage) return;
     
-    // Get the output format from the UI
-    const outputFormatElement = document.querySelector('[data-value="outputFormat"]') as HTMLSelectElement;
-    const outputFormat = outputFormatElement?.value || "png";
-    
-    // Get the correct file extension
-    let fileExtension = outputFormat;
-    if (outputFormat === 'jpg') {
-      fileExtension = 'jpg';
-    } else if (outputFormat === 'jpeg') {
-      fileExtension = 'jpg';
-    } else if (outputFormat === 'heic') {
-      fileExtension = 'heic';
+    // Get the output format from the UI if it's the image converter
+    let fileExtension = 'png';
+    if (selectedTool.id === "image-converter") {
+      const outputFormatElement = document.querySelector('[data-value="outputFormat"]') as HTMLSelectElement;
+      const outputFormat = outputFormatElement?.value || "png";
+      
+      // Map the output format to the correct file extension
+      switch (outputFormat) {
+        case 'jpg':
+        case 'jpeg':
+          fileExtension = 'jpg';
+          break;
+        case 'webp':
+          fileExtension = 'webp';
+          break;
+        case 'gif':
+          fileExtension = 'gif';
+          break;
+        case 'tiff':
+          fileExtension = 'tiff';
+          break;
+        case 'avif':
+          fileExtension = 'avif';
+          break;
+        case 'heic':
+          fileExtension = 'heic';
+          break;
+        default:
+          fileExtension = 'png';
+      }
     }
     
     // Create a temporary link to download the image
@@ -465,6 +541,11 @@ export default function ToolsPage() {
       setShowComparison(false);
       setIsProcessing(false);
       setToolChanged(true);
+      
+      // Reset the file input reference
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       
       // Show a toast notification to inform the user
       toast.info("Tool changed", {
@@ -619,15 +700,30 @@ export default function ToolsPage() {
                         className="bg-white text-gray-900 hover:bg-white/90"
                           onClick={(e) => {
                             e.stopPropagation(); // Prevent event bubbling
-                          setProcessedImage(null);
-                          setPreviewImage(null);
+                            setProcessedImage(null);
+                            setPreviewImage(null);
                             setShowComparison(false);
-                        }}
+                            // Reset the file input reference
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = '';
+                            }
+                          }}
                       >
                         <Upload className="h-4 w-4 mr-2" />
                         Upload New Image
                       </Button>
                     </div>
+                    )}
+                    
+                    {/* Show format info for image converter */}
+                    {selectedTool.id === "image-converter" && !showComparison && (
+                      <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                        {(() => {
+                          const outputFormatElement = document.querySelector('[data-value="outputFormat"]') as HTMLSelectElement;
+                          const outputFormat = outputFormatElement?.value || "png";
+                          return `Converted to ${outputFormat.toUpperCase()}`;
+                        })()}
+                      </div>
                     )}
                   </div>
                 ) : previewImage ? (
@@ -676,7 +772,7 @@ export default function ToolsPage() {
               </Card>
 
               {/* Comparison Slider - Only show when we have both images */}
-              {showComparison && previewImage && processedImage && (
+              {showComparison && previewImage && processedImage && selectedTool.id !== "image-converter" && (
                 <div className="absolute inset-0 pointer-events-none">
                   <div className="relative w-full h-full comparison-container">
                     {/* Original Image (Left side) */}
@@ -760,8 +856,8 @@ export default function ToolsPage() {
                 </div>
               )}
 
-              {/* Comparison Toggle Button - Only show when we have both images */}
-              {processedImage && previewImage && (
+              {/* Comparison Toggle Button - Only show when we have both images and not for image converter */}
+              {processedImage && previewImage && selectedTool.id !== "image-converter" && (
                 <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10">
                   <Button
                     variant="outline"
@@ -984,37 +1080,35 @@ export default function ToolsPage() {
                                   <Settings2 className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Output Format</span>
                                 </div>
-                                <Select defaultValue="png" data-value="outputFormat">
-                                  <SelectTrigger className="h-7 w-[120px] text-xs">
-                                    <SelectValue placeholder="PNG" />
-                                  </SelectTrigger>
-                                  <SelectContent className="max-h-[300px]">
-                                    <SelectItem value="png">PNG</SelectItem>
-                                    <SelectItem value="jpg">JPG</SelectItem>
-                                    <SelectItem value="jpeg">JPEG</SelectItem>
-                                    <SelectItem value="webp">WebP</SelectItem>
-                                    <SelectItem value="gif">GIF</SelectItem>
-                                    <SelectItem value="tiff">TIFF</SelectItem>
-                                    <SelectItem value="avif">AVIF</SelectItem>
-                                    <SelectItem value="heic">HEIC</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <select 
+                                  className="h-7 w-[120px] text-xs rounded-md border border-gray-200 px-2"
+                                  data-value="outputFormat"
+                                  defaultValue="png"
+                                >
+                                  <option value="png">PNG</option>
+                                  <option value="jpg">JPG</option>
+                                  <option value="jpeg">JPEG</option>
+                                  <option value="webp">WebP</option>
+                                  <option value="gif">GIF</option>
+                                  <option value="tiff">TIFF</option>
+                                  <option value="avif">AVIF</option>
+                                  <option value="heic">HEIC</option>
+                                </select>
                               </div>
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
                                   <Sliders className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Quality</span>
                                 </div>
-                                <Select defaultValue="high">
-                                  <SelectTrigger className="h-7 w-[100px] text-xs">
-                                    <SelectValue placeholder="High" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="low">Low</SelectItem>
-                                    <SelectItem value="medium">Medium</SelectItem>
-                                    <SelectItem value="high">High</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <select 
+                                  className="h-7 w-[100px] text-xs rounded-md border border-gray-200 px-2"
+                                  data-value="quality"
+                                  defaultValue="high"
+                                >
+                                  <option value="low">Low</option>
+                                  <option value="medium">Medium</option>
+                                  <option value="high">High</option>
+                                </select>
                               </div>
                             </>
                           )}
