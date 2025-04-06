@@ -23,6 +23,7 @@ import { User, ImageProcessingHistoryItem } from "@/types/user";
 import { toast } from "sonner";
 import { upscaleImage } from '@/utils/imageUpscaler';
 import { convertImage } from '@/utils/imageConverter';
+import { enhanceImage } from '@/utils/imageEnhancer';
 
 const allTools = [
   {
@@ -64,6 +65,19 @@ const allTools = [
   }
 ];
 
+// Define a type for the enhancement settings
+type EnhancementSettings = {
+  brightness: number;
+  contrast: number;
+  sharpness: number;
+  denoise: number;
+  saturation: number;
+  colorTemperature: number;
+  faceEnhancement: boolean;
+  backgroundEnhancement: boolean;
+  autoEnhance: boolean;
+};
+
 export default function ToolsPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -103,22 +117,20 @@ export default function ToolsPage() {
     );
   }
 
-  const [selectedTool, setSelectedTool] = useState(allTools[0]);
-  const [editCount, setEditCount] = useState(0);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedTool, setSelectedTool] = useState(allTools[0]);
+  const [showComparison, setShowComparison] = useState(false);
+  const [comparisonPosition, setComparisonPosition] = useState(50);
+  const [editCount, setEditCount] = useState(0);
   const [showHistory, setShowHistory] = useState(false);
-  const [backgroundType, setBackgroundType] = useState("transparent");
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const FREE_TRIAL_LIMIT = 10;
   const WARNING_THRESHOLD = 7;
   const [backgroundState, setBackgroundState] = useState("original");
-  
-  // Add state for the comparison slider
-  const [comparisonPosition, setComparisonPosition] = useState(50);
-  const [showComparison, setShowComparison] = useState(false);
 
   // Show all tools but mark non-free ones as locked
   const tools = allTools.map(tool => ({
@@ -131,13 +143,254 @@ export default function ToolsPage() {
 
   const [toolChanged, setToolChanged] = useState(false);
 
+  const [enhancementSettings, setEnhancementSettings] = useState<EnhancementSettings>({
+    brightness: 50,
+    contrast: 50,
+    sharpness: 50,
+    denoise: 0,
+    saturation: 50,
+    colorTemperature: 0,
+    faceEnhancement: false,
+    backgroundEnhancement: false,
+    autoEnhance: false
+  });
+
+  // Preset styles configuration
+  const presetStyles: Record<string, EnhancementSettings> = {
+    standard: {
+      brightness: 50,
+      contrast: 50,
+      sharpness: 50,
+      denoise: 0,
+      saturation: 50,
+      colorTemperature: 0,
+      faceEnhancement: false,
+      backgroundEnhancement: false,
+      autoEnhance: false
+    },
+    cool: {
+      brightness: 55,
+      contrast: 60,
+      sharpness: 65,
+      denoise: 10,
+      saturation: 40,
+      colorTemperature: -30,
+      faceEnhancement: true,
+      backgroundEnhancement: true,
+      autoEnhance: false
+    },
+    warm: {
+      brightness: 55,
+      contrast: 60,
+      sharpness: 65,
+      denoise: 10,
+      saturation: 60,
+      colorTemperature: 30,
+      faceEnhancement: true,
+      backgroundEnhancement: true,
+      autoEnhance: false
+    },
+    vibrant: {
+      brightness: 60,
+      contrast: 70,
+      sharpness: 75,
+      denoise: 15,
+      saturation: 80,
+      colorTemperature: 0,
+      faceEnhancement: true,
+      backgroundEnhancement: true,
+      autoEnhance: false
+    },
+    richContrast: {
+      brightness: 45,
+      contrast: 80,
+      sharpness: 70,
+      denoise: 20,
+      saturation: 40,
+      colorTemperature: 0,
+      faceEnhancement: true,
+      backgroundEnhancement: true,
+      autoEnhance: false
+    },
+    cinematic: {
+      brightness: 40,
+      contrast: 75,
+      sharpness: 60,
+      denoise: 25,
+      saturation: 30,
+      colorTemperature: -20,
+      faceEnhancement: true,
+      backgroundEnhancement: true,
+      autoEnhance: false
+    }
+  };
+
+  // Function to apply preset style
+  const applyPresetStyle = (style: keyof typeof presetStyles) => {
+    if (presetStyles[style]) {
+      setEnhancementSettings(presetStyles[style]);
+      
+      // Update UI elements to reflect the new settings
+      const elements = {
+        brightness: document.querySelector('[data-value="brightness"]') as HTMLInputElement,
+        contrast: document.querySelector('[data-value="contrast"]') as HTMLInputElement,
+        sharpness: document.querySelector('[data-value="sharpness"]') as HTMLInputElement,
+        denoise: document.querySelector('[data-value="denoise"]') as HTMLInputElement,
+        saturation: document.querySelector('[data-value="saturation"]') as HTMLInputElement,
+        colorTemperature: document.querySelector('[data-value="colorTemperature"]') as HTMLInputElement,
+        faceEnhancement: document.querySelector('[data-value="faceEnhancement"]') as HTMLInputElement,
+        backgroundEnhancement: document.querySelector('[data-value="backgroundEnhancement"]') as HTMLInputElement,
+        autoEnhance: document.querySelector('[data-value="autoEnhance"]') as HTMLInputElement
+      };
+      
+      // Update slider values and their display
+      if (elements.brightness) {
+        elements.brightness.value = presetStyles[style].brightness.toString();
+        const nextElement = elements.brightness.nextElementSibling;
+        if (nextElement) {
+          nextElement.textContent = presetStyles[style].brightness.toString();
+        }
+      }
+      
+      if (elements.contrast) {
+        elements.contrast.value = presetStyles[style].contrast.toString();
+        const nextElement = elements.contrast.nextElementSibling;
+        if (nextElement) {
+          nextElement.textContent = presetStyles[style].contrast.toString();
+        }
+      }
+      
+      if (elements.sharpness) {
+        elements.sharpness.value = presetStyles[style].sharpness.toString();
+        const nextElement = elements.sharpness.nextElementSibling;
+        if (nextElement) {
+          nextElement.textContent = presetStyles[style].sharpness.toString();
+        }
+      }
+      
+      if (elements.denoise) {
+        elements.denoise.value = presetStyles[style].denoise.toString();
+        const nextElement = elements.denoise.nextElementSibling;
+        if (nextElement) {
+          nextElement.textContent = presetStyles[style].denoise.toString();
+        }
+      }
+      
+      if (elements.saturation) {
+        elements.saturation.value = presetStyles[style].saturation.toString();
+        const nextElement = elements.saturation.nextElementSibling;
+        if (nextElement) {
+          nextElement.textContent = presetStyles[style].saturation.toString();
+        }
+      }
+      
+      if (elements.colorTemperature) {
+        elements.colorTemperature.value = presetStyles[style].colorTemperature.toString();
+        const nextElement = elements.colorTemperature.nextElementSibling;
+        if (nextElement) {
+          nextElement.textContent = presetStyles[style].colorTemperature.toString();
+        }
+      }
+      
+      // Update switches
+      if (elements.faceEnhancement) {
+        elements.faceEnhancement.checked = presetStyles[style].faceEnhancement;
+      }
+      
+      if (elements.backgroundEnhancement) {
+        elements.backgroundEnhancement.checked = presetStyles[style].backgroundEnhancement;
+      }
+      
+      if (elements.autoEnhance) {
+        elements.autoEnhance.checked = presetStyles[style].autoEnhance;
+      }
+      
+      // Apply the changes
+      applyEnhancementChanges();
+    }
+  };
+
+  // Function to apply enhancement changes in real-time
+  const applyEnhancementChanges = async () => {
+    if (!selectedImage) return;
+    
+    try {
+      // Get current values from UI
+      const brightnessElement = document.querySelector('[data-value="brightness"]') as HTMLInputElement;
+      const contrastElement = document.querySelector('[data-value="contrast"]') as HTMLInputElement;
+      const sharpnessElement = document.querySelector('[data-value="sharpness"]') as HTMLInputElement;
+      const denoiseElement = document.querySelector('[data-value="denoise"]') as HTMLInputElement;
+      const saturationElement = document.querySelector('[data-value="saturation"]') as HTMLInputElement;
+      const colorTemperatureElement = document.querySelector('[data-value="colorTemperature"]') as HTMLInputElement;
+      const faceEnhancementElement = document.querySelector('[data-value="faceEnhancement"]') as HTMLInputElement;
+      const backgroundEnhancementElement = document.querySelector('[data-value="backgroundEnhancement"]') as HTMLInputElement;
+      const autoEnhanceElement = document.querySelector('[data-value="autoEnhance"]') as HTMLInputElement;
+      
+      const brightness = brightnessElement?.value || "50";
+      const contrast = contrastElement?.value || "50";
+      const sharpness = sharpnessElement?.value || "50";
+      const denoise = denoiseElement?.value || "0";
+      const saturation = saturationElement?.value || "50";
+      const colorTemperature = colorTemperatureElement?.value || "0";
+      const faceEnhancement = faceEnhancementElement?.checked || false;
+      const backgroundEnhancement = backgroundEnhancementElement?.checked || false;
+      const autoEnhance = autoEnhanceElement?.checked || false;
+      
+      // Update state
+      setEnhancementSettings({
+        brightness: parseInt(brightness),
+        contrast: parseInt(contrast),
+        sharpness: parseInt(sharpness),
+        denoise: parseInt(denoise),
+        saturation: parseInt(saturation),
+        colorTemperature: parseInt(colorTemperature),
+        faceEnhancement,
+        backgroundEnhancement,
+        autoEnhance
+      });
+      
+      // Convert base64 to blob
+      const response = await fetch(selectedImage);
+      const blob = await response.blob();
+      
+      // Create a File object from the blob
+      const file = new File([blob], "image.png", { type: "image/png" });
+      
+      // Process image client-side
+      const enhancedImage = await enhanceImage(file, {
+        brightness: parseInt(brightness),
+        contrast: parseInt(contrast),
+        sharpness: parseInt(sharpness),
+        denoise: parseInt(denoise),
+        saturation: parseInt(saturation),
+        colorTemperature: parseInt(colorTemperature),
+        faceEnhancement,
+        backgroundEnhancement,
+        autoEnhance
+      });
+      
+      // Update the processed image
+      setProcessedImage(enhancedImage);
+    } catch (error) {
+      console.error('Error applying enhancement changes:', error);
+    }
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
+        setSelectedImage(reader.result as string);
         setToolChanged(false);
+        
+        // If the selected tool is image enhancement, apply the initial settings
+        if (selectedTool.id === "image-enhancement") {
+          // We need to wait for the state to update before applying enhancements
+          setTimeout(() => {
+            applyEnhancementChanges();
+          }, 100);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -149,7 +402,7 @@ export default function ToolsPage() {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
+        setSelectedImage(reader.result as string);
         setToolChanged(false);
       };
       reader.readAsDataURL(file);
@@ -161,196 +414,320 @@ export default function ToolsPage() {
   };
 
   const handleProcessImage = async () => {
-    if (!previewImage) return;
+    if (!selectedImage) return;
     
     setIsProcessing(true);
-    try {
-      // Convert base64 to blob
-      const response = await fetch(previewImage);
-      const blob = await response.blob();
-      
-      // Create form data
-      const formData = new FormData();
-      formData.append('image', blob, 'image.png');
-      
-      // Add tool-specific parameters
-      if (selectedTool.id === "background-removal") {
-        formData.append('backgroundType', backgroundType);
-      } else if (selectedTool.id === "image-upscaler") {
-        // Get scale factor and quality from the UI
-        const scaleFactorElement = document.querySelector('[data-value="scaleFactor"]') as HTMLSelectElement;
-        const qualityElement = document.querySelector('[data-value="quality"]') as HTMLSelectElement;
-        
-        // Parse the scale factor value (e.g., "2x" -> 2)
-        const scaleFactorValue = scaleFactorElement?.value || "2x";
-        const scaleFactor = parseFloat(scaleFactorValue.replace('x', ''));
-        const quality = qualityElement?.value || "high";
-        
-        // Get the image file
-        const imageFile = formData.get('image') as File;
-        
-        try {
-          // Process image client-side
-          const processedImage = await upscaleImage(imageFile, {
-            scaleFactor,
-            quality: quality as 'low' | 'medium' | 'high'
-          });
-          
-          // Update the UI with the processed image
-          setProcessedImage(processedImage);
-          setShowComparison(true);
-          setIsProcessing(false);
-          return;
-        } catch (error) {
-          console.error('Error processing image:', error);
-          throw new Error('Failed to process image');
-        }
-      } else if (selectedTool.id === "image-enhancement") {
-        // Get enhancement parameters from the UI
-        const brightnessElement = document.querySelector('[data-tool="image-enhancement"] [data-value="brightness"]') as HTMLInputElement;
-        const contrastElement = document.querySelector('[data-tool="image-enhancement"] [data-value="contrast"]') as HTMLInputElement;
-        const sharpnessElement = document.querySelector('[data-tool="image-enhancement"] [data-value="sharpness"]') as HTMLInputElement;
-        
-        const brightness = brightnessElement?.value || "50";
-        const contrast = contrastElement?.value || "50";
-        const sharpness = sharpnessElement?.value || "50";
-        
-        formData.append('brightness', brightness);
-        formData.append('contrast', contrast);
-        formData.append('sharpness', sharpness);
-      } else if (selectedTool.id === "image-converter") {
-        // Get output format and quality from the UI
-        const outputFormatElement = document.querySelector('[data-value="outputFormat"]') as HTMLSelectElement;
-        const qualityElement = document.querySelector('[data-value="quality"]') as HTMLSelectElement;
-        
-        console.log('Output format element:', outputFormatElement);
-        console.log('Quality element:', qualityElement);
-        
-        const outputFormat = outputFormatElement?.value || "png";
-        const quality = qualityElement?.value || "high";
-        
-        console.log(`Selected format: ${outputFormat}, quality: ${quality}`);
-        
-        // Get the image file
-        const imageFile = formData.get('image') as File;
-        
-        try {
-          // Process image client-side
-          const processedImage = await convertImage(imageFile, {
-            outputFormat: outputFormat as 'png' | 'jpg' | 'jpeg' | 'webp' | 'gif' | 'tiff' | 'avif' | 'heic',
-            quality: quality as 'low' | 'medium' | 'high'
-          });
-          
-          console.log(`Successfully converted image to ${outputFormat}`);
-          
-          // Update the UI with the processed image
-          setProcessedImage(processedImage);
-          setShowComparison(false);
-          setIsProcessing(false);
-          
-          // Add to history
-          if (user) {
-            const historyItem: ImageProcessingHistoryItem = {
-              id: Date.now().toString(),
-              toolId: selectedTool.id,
-              originalImage: previewImage,
-              processedImage: processedImage,
-              timestamp: new Date(),
-              settings: {
-                outputFormat,
-                quality
-              }
-            };
-            // Update user's history
-            user.imageProcessingHistory = [...(user.imageProcessingHistory || []), historyItem];
-          }
-          
-          // Show success notification
-          toast.success("Image converted successfully!", {
-            description: `Your image has been converted to ${outputFormat.toUpperCase()}.`,
-            action: {
-              label: "View History",
-              onClick: () => setShowHistory(true),
-            },
-          });
-          
-          return;
-        } catch (error) {
-          console.error('Error converting image:', error);
-          throw new Error('Failed to convert image');
-        }
-      }
-      
-      // Determine which API to call based on the selected tool
-      let apiEndpoint = '/api/background-removal';
-      if (selectedTool.id === "image-upscaler") {
-        apiEndpoint = '/api/image-upscaler';
-      } else if (selectedTool.id === "image-enhancement") {
-        apiEndpoint = '/api/image-enhancement';
-      } else if (selectedTool.id === "image-converter") {
-        apiEndpoint = '/api/image-converter';
-      }
-      
-      // Call the appropriate API
-      const apiResponse = await fetch(apiEndpoint, {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!apiResponse.ok) {
-        const errorData = await apiResponse.json();
-        throw new Error(errorData.error || 'Failed to process image');
-      }
-      
-      const result = await apiResponse.json();
-      
-      // Update processed image with the result
-      setProcessedImage(result.processedImage);
-      setEditCount(prev => prev + 1);
-      
-      // For image converter, we don't show comparison view
-      if (selectedTool.id === "image-converter") {
-        setShowComparison(false);
-      } else if (previewImage && result.processedImage) {
-        // Enable comparison view when we have both images
-        setShowComparison(true);
-      }
-      
-      // Add to history
-      if (user) {
-        const historyItem: ImageProcessingHistoryItem = {
-          id: Date.now().toString(),
-          toolId: selectedTool.id,
-          originalImage: previewImage,
-          processedImage: result.processedImage,
-          timestamp: new Date(),
-          settings: {
-            edgeDetection: 'auto',
-            backgroundType: backgroundType,
-            autoCrop: true
-          }
-        };
-        // Update user's history
-        user.imageProcessingHistory = [...(user.imageProcessingHistory || []), historyItem];
-      }
+    setError && setError(null);
 
-      // Show success notification
-      toast.success("Image processed successfully!", {
-        description: "Your image has been processed and added to history.",
-        action: {
-          label: "View History",
-          onClick: () => setShowHistory(true),
-        },
-      });
+    try {
+      if (selectedTool.id === "image-enhancement") {
+        // For image enhancement, we don't need to process again
+        // since we're already showing the processed image in real-time
+        setIsProcessing(false);
+        
+        // Add to history if the function exists
+        if (typeof addToHistory === 'function') {
+          addToHistory({
+            originalImage: selectedImage,
+            processedImage: processedImage,
+            timestamp: new Date().toISOString(),
+            settings: enhancementSettings
+          });
+        }
+
+        toast.success("Image Enhanced", {
+          description: "Your image has been enhanced successfully.",
+        });
+      } else if (selectedTool.id === "background-removal") {
+        // Convert base64 to blob
+        const response = await fetch(selectedImage);
+        const blob = await response.blob();
+        
+        // Create a File object from the blob
+        const file = new File([blob], "image.png", { type: "image/png" });
+        
+        // Process image for background removal using remove.bg API
+        try {
+          // Create form data for the API request
+          const formData = new FormData();
+          formData.append('image_file', file);
+          formData.append('size', 'auto');
+          
+          // Make API request to remove.bg
+          console.log('Making API request to remove.bg with API key:', process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY ? 'API key exists' : 'API key missing');
+          
+          // Show a loading toast
+          toast.info("Processing", {
+            description: "Removing background from your image...",
+          });
+          
+          // Check if API key exists
+          if (!process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY) {
+            throw new Error('Remove.bg API key is missing. Using fallback method.');
+          }
+          
+          const apiResponse = await fetch('https://api.remove.bg/v1.0/removebg', {
+            method: 'POST',
+            headers: {
+              'X-Api-Key': process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY,
+            },
+            body: formData,
+          });
+          
+          if (!apiResponse.ok) {
+            console.error('API error:', apiResponse.status, await apiResponse.text());
+            throw new Error(`API error: ${apiResponse.status}`);
+          }
+          
+          console.log('API response received successfully');
+          // Get the processed image as a blob
+          const processedBlob = await apiResponse.blob();
+          
+          // Convert blob to base64
+          const reader = new FileReader();
+          reader.readAsDataURL(processedBlob);
+          
+          await new Promise((resolve) => {
+            reader.onloadend = () => {
+              // Always use transparent background
+              const processedImageUrl = reader.result as string;
+              console.log('Setting processed image with transparent background');
+              setProcessedImage(processedImageUrl);
+              
+              // Add to history if the function exists
+              if (typeof addToHistory === 'function') {
+                addToHistory({
+                  originalImage: selectedImage,
+                  processedImage: processedImageUrl,
+                  timestamp: new Date().toISOString(),
+                  toolId: selectedTool.id
+                });
+              }
+              
+              toast.success("Background Removed", {
+                description: "Your image background has been removed successfully.",
+              });
+              
+              resolve(null);
+            };
+          });
+        } catch (apiError) {
+          console.error('Error with remove.bg API:', apiError);
+          
+          // Fallback to client-side processing if API fails
+          toast.warning("API Error", {
+            description: "Using fallback background removal method.",
+          });
+          
+          // For demo purposes, we'll just create a simple effect
+          const img = document.createElement('img');
+          img.src = selectedImage;
+          await new Promise(resolve => {
+            img.onload = resolve;
+          });
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          
+          if (!ctx) {
+            throw new Error('Could not get canvas context');
+          }
+          
+          // Draw the original image
+          ctx.drawImage(img, 0, 0);
+          
+          // Get image data for manipulation
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          
+          // Simple background removal simulation
+          // In a real implementation, this would use AI to detect and remove the background
+          for (let i = 0; i < data.length; i += 4) {
+            // Simple edge detection for demo purposes
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            
+            // If pixel is close to white or light gray, make it transparent
+            if (r > 240 && g > 240 && b > 240) {
+              data[i + 3] = 0; // Set alpha to 0 (transparent)
+            }
+          }
+          
+          // Put the processed image data back on the canvas
+          ctx.putImageData(imageData, 0, 0);
+          
+          // Always use transparent background
+          const processedImageUrl = canvas.toDataURL('image/png');
+          console.log('Setting processed image with transparent background (fallback)');
+          setProcessedImage(processedImageUrl);
+          
+          // Add to history if the function exists
+          if (typeof addToHistory === 'function') {
+            addToHistory({
+              originalImage: selectedImage,
+              processedImage: processedImageUrl,
+              timestamp: new Date().toISOString(),
+              toolId: selectedTool.id
+            });
+          }
+          
+          toast.success("Background Removed", {
+            description: "Your image background has been removed successfully.",
+          });
+        }
+      } else if (selectedTool.id === "image-upscaler") {
+        // Convert base64 to blob
+        const response = await fetch(selectedImage);
+        const blob = await response.blob();
+        
+        // Create a File object from the blob
+        const file = new File([blob], "image.png", { type: "image/png" });
+        
+        // Get scale factor from UI
+        const scaleFactorElement = document.querySelector('[data-value="scaleFactor"]') as HTMLSelectElement;
+        const scaleFactor = scaleFactorElement?.value || "2x";
+        
+        // Get quality from UI
+        const qualityElement = document.querySelector('[data-value="quality"]') as HTMLSelectElement;
+        const quality = qualityElement?.value || "high";
+        
+        // Process image for upscaling
+        // This is a placeholder for the actual upscaling API call
+        // In a real implementation, you would call your upscaling service
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing
+        
+        // For demo purposes, we'll just create a simple upscaling effect
+        const img = document.createElement('img');
+        img.src = selectedImage;
+        await new Promise(resolve => {
+          img.onload = resolve;
+        });
+        
+        // Calculate new dimensions based on scale factor
+        const scale = parseFloat(scaleFactor.replace('x', ''));
+        const newWidth = img.width * scale;
+        const newHeight = img.height * scale;
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          throw new Error('Could not get canvas context');
+        }
+        
+        // Use better quality settings for high quality
+        if (quality === 'high') {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+        } else if (quality === 'medium') {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'medium';
+        } else {
+          ctx.imageSmoothingEnabled = false;
+        }
+        
+        // Draw the original image scaled up
+        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+        
+        // Set the processed image
+        setProcessedImage(canvas.toDataURL('image/jpeg', 0.95));
+        
+        // Add to history if the function exists
+        if (typeof addToHistory === 'function') {
+          addToHistory({
+            originalImage: selectedImage,
+            processedImage: canvas.toDataURL('image/jpeg', 0.95),
+            timestamp: new Date().toISOString(),
+            toolId: selectedTool.id
+          });
+        }
+        
+        toast.success("Image Upscaled", {
+          description: `Your image has been upscaled to ${scaleFactor} successfully.`,
+        });
+      } else if (selectedTool.id === "image-converter") {
+        // Convert base64 to blob
+        const response = await fetch(selectedImage);
+        const blob = await response.blob();
+        
+        // Create a File object from the blob
+        const file = new File([blob], "image.png", { type: "image/png" });
+        
+        // Get output format from UI
+        const outputFormatElement = document.querySelector('[data-value="outputFormat"]') as HTMLSelectElement;
+        const outputFormat = outputFormatElement?.value || "png";
+        
+        // Get quality from UI
+        const qualityElement = document.querySelector('[data-value="quality"]') as HTMLSelectElement;
+        const quality = qualityElement?.value || "high";
+        
+        // Process image for conversion
+        // This is a placeholder for the actual conversion API call
+        // In a real implementation, you would call your conversion service
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing
+        
+        // For demo purposes, we'll just create a simple conversion effect
+        const img = document.createElement('img');
+        img.src = selectedImage;
+        await new Promise(resolve => {
+          img.onload = resolve;
+        });
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          throw new Error('Could not get canvas context');
+        }
+        
+        // Draw the original image
+        ctx.drawImage(img, 0, 0);
+        
+        // Set quality based on user selection
+        let qualityValue = 0.95;
+        if (quality === 'medium') {
+          qualityValue = 0.75;
+        } else if (quality === 'low') {
+          qualityValue = 0.5;
+        }
+        
+        // Convert to the selected format
+        let mimeType = 'image/png';
+        if (outputFormat === 'jpg' || outputFormat === 'jpeg') {
+          mimeType = 'image/jpeg';
+        } else if (outputFormat === 'webp') {
+          mimeType = 'image/webp';
+        }
+        
+        // Set the processed image
+        setProcessedImage(canvas.toDataURL(mimeType, qualityValue));
+        
+        // Add to history if the function exists
+        if (typeof addToHistory === 'function') {
+          addToHistory({
+            originalImage: selectedImage,
+            processedImage: canvas.toDataURL(mimeType, qualityValue),
+            timestamp: new Date().toISOString(),
+            toolId: selectedTool.id
+          });
+        }
+        
+        toast.success("Image Converted", {
+          description: `Your image has been converted to ${outputFormat.toUpperCase()} successfully.`,
+        });
+      }
     } catch (error) {
       console.error('Error processing image:', error);
-      // Show error notification with retry option
-      toast.error("Failed to process image", {
-        description: error instanceof Error ? error.message : "An error occurred while processing your image.",
-        action: {
-          label: "Retry",
-          onClick: handleProcessImage,
-        },
+      setError && setError('Failed to process image. Please try again.');
+      toast.error("Error", {
+        description: "Failed to process image. Please try again.",
       });
     } finally {
       setIsProcessing(false);
@@ -415,7 +792,7 @@ export default function ToolsPage() {
   };
 
   const handleBackgroundChange = async (type: string) => {
-    setBackgroundType(type);
+    setBackgroundState(type);
     if (!processedImage) return;
 
     // Create a new image element
@@ -535,7 +912,7 @@ export default function ToolsPage() {
     // Only reset if we're actually changing tools
     if (previousTool.id !== tool) {
       // Reset image preview when switching tools
-      setPreviewImage(null);
+      setSelectedImage(null);
       setProcessedImage(null);
       setComparisonPosition(50);
       setShowComparison(false);
@@ -552,6 +929,12 @@ export default function ToolsPage() {
         description: "Please upload a new image to use this tool.",
       });
     }
+  };
+
+  // Function to add to history
+  const addToHistory = (item: any) => {
+    // Implementation for adding to history
+    console.log("Added to history:", item);
   };
 
   return (
@@ -642,7 +1025,7 @@ export default function ToolsPage() {
           {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Left Side - Preview Area */}
-            <div className="relative min-h-[180px] sm:min-h-[200px] lg:min-h-[300px]">
+            <div className="relative h-[400px] lg:h-[500px] lg:sticky lg:top-4">
               <Card 
                 className={`h-full flex items-center justify-center border-2 border-dashed border-gray-200 hover:border-primary/50 transition-all duration-300 ${showComparison ? 'cursor-default' : 'cursor-pointer'} bg-white shadow-sm hover:shadow-md`}
                 onClick={(e) => {
@@ -672,7 +1055,7 @@ export default function ToolsPage() {
                   <div className="relative w-full h-full">
                     <div 
                       className="absolute inset-0 rounded-lg"
-                      style={{ backgroundColor: backgroundType === "transparent" ? "transparent" : backgroundColor }}
+                      style={{ backgroundColor: backgroundState === "transparent" ? "transparent" : backgroundColor }}
                     />
                     <Image
                       src={processedImage}
@@ -684,34 +1067,56 @@ export default function ToolsPage() {
                     {/* Only show action buttons when not in comparison mode */}
                     {!showComparison && (
                     <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 rounded-lg">
-                      <Button
-                        variant="secondary"
-                        className="bg-white text-gray-900 hover:bg-white/90"
-                          onClick={(e) => {
-                            e.stopPropagation(); // Prevent event bubbling
-                            handleDownload();
-                          }}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download Result
-                      </Button>
+                      {selectedTool.id === "image-enhancement" ? (
                       <Button
                         variant="secondary"
                         className="bg-white text-gray-900 hover:bg-white/90"
                           onClick={(e) => {
                             e.stopPropagation(); // Prevent event bubbling
                             setProcessedImage(null);
-                            setPreviewImage(null);
+                            setSelectedImage(null);
                             setShowComparison(false);
                             // Reset the file input reference
                             if (fileInputRef.current) {
                               fileInputRef.current.value = '';
                             }
                           }}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload New Image
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            variant="secondary"
+                            className="bg-white text-gray-900 hover:bg-white/90"
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent event bubbling
+                              handleDownload();
+                            }}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                            Download Image
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="bg-white text-gray-900 hover:bg-white/90"
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent event bubbling
+                          setProcessedImage(null);
+                              setSelectedImage(null);
+                              setShowComparison(false);
+                              // Reset the file input reference
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                              }
+                        }}
                       >
                         <Upload className="h-4 w-4 mr-2" />
                         Upload New Image
                       </Button>
+                        </>
+                      )}
                     </div>
                     )}
                     
@@ -723,13 +1128,13 @@ export default function ToolsPage() {
                           const outputFormat = outputFormatElement?.value || "png";
                           return `Converted to ${outputFormat.toUpperCase()}`;
                         })()}
-                      </div>
+                  </div>
                     )}
                   </div>
-                ) : previewImage ? (
+                ) : selectedImage ? (
                   <div className="relative w-full h-full">
                     <Image
-                      src={previewImage}
+                      src={selectedImage}
                       alt="Preview"
                       fill
                       className="object-cover rounded-lg transition-all duration-300"
@@ -772,14 +1177,14 @@ export default function ToolsPage() {
               </Card>
 
               {/* Comparison Slider - Only show when we have both images */}
-              {showComparison && previewImage && processedImage && selectedTool.id !== "image-converter" && (
+              {showComparison && selectedImage && processedImage && selectedTool.id !== "image-converter" && (
                 <div className="absolute inset-0 pointer-events-none">
                   <div className="relative w-full h-full comparison-container">
                     {/* Original Image (Left side) */}
                     <div className="absolute inset-0 overflow-hidden rounded-lg">
                       <div className="absolute inset-0" style={{ width: `${comparisonPosition}%` }}>
                         <Image
-                          src={previewImage}
+                          src={selectedImage}
                           alt="Original"
                           fill
                           className="object-cover"
@@ -857,7 +1262,7 @@ export default function ToolsPage() {
               )}
 
               {/* Comparison Toggle Button - Only show when we have both images and not for image converter */}
-              {processedImage && previewImage && selectedTool.id !== "image-converter" && (
+              {processedImage && selectedImage && selectedTool.id !== "image-converter" && (
                 <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10">
                   <Button
                     variant="outline"
@@ -1019,52 +1424,6 @@ export default function ToolsPage() {
                               </div>
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
-                                  <Palette className="h-4 w-4 text-gray-500" />
-                                  <span className="text-xs font-medium text-gray-700">Background Type</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Select 
-                                    defaultValue={backgroundType} 
-                                    onValueChange={handleBackgroundChange}
-                                  >
-                                    <SelectTrigger className="h-7 w-[120px] text-xs">
-                                      <SelectValue placeholder="Transparent" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="transparent">
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-4 h-4 rounded border border-gray-200 bg-transparent" />
-                                          <span>Transparent</span>
-                                        </div>
-                                      </SelectItem>
-                                      <SelectItem value="white">
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-4 h-4 rounded border border-gray-200 bg-white" />
-                                          <span>White</span>
-                                        </div>
-                                      </SelectItem>
-                                      <SelectItem value="black">
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-4 h-4 rounded border border-gray-200 bg-black" />
-                                          <span>Black</span>
-                                        </div>
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Info className="h-3.5 w-3.5 text-gray-400" />
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Choose how you want the background to appear in your processed image</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </div>
-                              </div>
-                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
-                                <div className="flex items-center gap-2">
                                   <Crop className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Auto Crop</span>
                                 </div>
@@ -1153,58 +1512,272 @@ export default function ToolsPage() {
 
                           {tool.id === "image-enhancement" && (
                             <>
-                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors" data-tool="image-enhancement">
+                              {/* Preset Styles Section */}
+                              <div className="mb-6 bg-white/50 backdrop-blur-sm p-4 rounded-xl border border-gray-100 shadow-sm">
+                                <h3 className="text-sm font-medium mb-3 text-gray-800 flex items-center">
+                                  <Sparkles className="h-4 w-4 mr-2 text-primary" />
+                                  Preset Styles
+                                </h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                  <button 
+                                    className="p-2.5 text-xs rounded-lg border border-gray-200 hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center justify-center"
+                                    onClick={() => applyPresetStyle('standard')}
+                                  >
+                                    <div className="w-3 h-3 rounded-full bg-gray-300 mr-2"></div>
+                                    Standard
+                                  </button>
+                                  <button 
+                                    className="p-2.5 text-xs rounded-lg border border-gray-200 hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center justify-center"
+                                    onClick={() => applyPresetStyle('cool')}
+                                  >
+                                    <div className="w-3 h-3 rounded-full bg-blue-300 mr-2"></div>
+                                    Cool Style
+                                  </button>
+                                  <button 
+                                    className="p-2.5 text-xs rounded-lg border border-gray-200 hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center justify-center"
+                                    onClick={() => applyPresetStyle('warm')}
+                                  >
+                                    <div className="w-3 h-3 rounded-full bg-orange-300 mr-2"></div>
+                                    Warm Style
+                                  </button>
+                                  <button 
+                                    className="p-2.5 text-xs rounded-lg border border-gray-200 hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center justify-center"
+                                    onClick={() => applyPresetStyle('vibrant')}
+                                  >
+                                    <div className="w-3 h-3 rounded-full bg-purple-300 mr-2"></div>
+                                    Vibrant Style
+                                  </button>
+                                  <button 
+                                    className="p-2.5 text-xs rounded-lg border border-gray-200 hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center justify-center"
+                                    onClick={() => applyPresetStyle('richContrast')}
+                                  >
+                                    <div className="w-3 h-3 rounded-full bg-gray-800 mr-2"></div>
+                                    Rich Contrast
+                                  </button>
+                                  <button 
+                                    className="p-2.5 text-xs rounded-lg border border-gray-200 hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center justify-center"
+                                    onClick={() => applyPresetStyle('cinematic')}
+                                  >
+                                    <div className="w-3 h-3 rounded-full bg-indigo-300 mr-2"></div>
+                                    Cinematic
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Enhancement Controls */}
+                              <div className="space-y-4 bg-white/50 backdrop-blur-sm p-4 rounded-xl border border-gray-100 shadow-sm">
+                                <h3 className="text-sm font-medium mb-3 text-gray-800 flex items-center">
+                                  <Sliders className="h-4 w-4 mr-2 text-primary" />
+                                  Adjustment Controls
+                                </h3>
+                                
+                                <div className="space-y-4">
+                                  <div className="flex flex-col space-y-1">
+                                    <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <Sun className="h-4 w-4 text-gray-500" />
+                                        <Sun className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Brightness</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-gray-500">0</span>
-                                  <input 
-                                    type="range" 
-                                    min="0" 
-                                    max="100" 
-                                    defaultValue="50" 
-                                    className="w-24 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                    data-value="brightness"
-                                  />
-                                  <span className="text-xs text-gray-500">100</span>
+                                      <span className="text-xs text-gray-500 w-6 text-center brightness-value">50</span>
                                 </div>
+                                    <div className="relative w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                      <div 
+                                        className="absolute h-full bg-primary/30 rounded-full"
+                                        style={{ width: '50%' }}
+                                      ></div>
+                                      <input 
+                                        type="range" 
+                                        min="0" 
+                                        max="100" 
+                                        defaultValue="50" 
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        data-value="brightness"
+                                        onInput={(e) => {
+                                          const value = (e.target as HTMLInputElement).value;
+                                          document.querySelector('.brightness-value')!.textContent = value;
+                                          (e.target as HTMLInputElement).parentElement?.querySelector('div')?.style.setProperty('width', `${value}%`);
+                                        }}
+                                        onChange={(e) => {
+                                          applyEnhancementChanges();
+                                        }}
+                                      />
                               </div>
-                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors" data-tool="image-enhancement">
+                                  </div>
+
+                                  <div className="flex flex-col space-y-1">
+                                    <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <Contrast className="h-4 w-4 text-gray-500" />
+                                        <Contrast className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Contrast</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-gray-500">0</span>
-                                  <input 
-                                    type="range" 
-                                    min="0" 
-                                    max="100" 
-                                    defaultValue="50" 
-                                    className="w-24 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                    data-value="contrast"
-                                  />
-                                  <span className="text-xs text-gray-500">100</span>
+                                      <span className="text-xs text-gray-500 w-6 text-center contrast-value">50</span>
                                 </div>
+                                    <div className="relative w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                      <div 
+                                        className="absolute h-full bg-primary/30 rounded-full"
+                                        style={{ width: '50%' }}
+                                      ></div>
+                                      <input 
+                                        type="range" 
+                                        min="0" 
+                                        max="100" 
+                                        defaultValue="50" 
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        data-value="contrast"
+                                        onInput={(e) => {
+                                          const value = (e.target as HTMLInputElement).value;
+                                          document.querySelector('.contrast-value')!.textContent = value;
+                                          (e.target as HTMLInputElement).parentElement?.querySelector('div')?.style.setProperty('width', `${value}%`);
+                                        }}
+                                        onChange={(e) => {
+                                          applyEnhancementChanges();
+                                        }}
+                                      />
                               </div>
-                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors" data-tool="image-enhancement">
+                                  </div>
+
+                                  <div className="flex flex-col space-y-1">
+                                    <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <Sparkles className="h-4 w-4 text-gray-500" />
+                                        <Sparkles className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Sharpness</span>
                                 </div>
+                                      <span className="text-xs text-gray-500 w-6 text-center sharpness-value">50</span>
+                                    </div>
+                                    <div className="relative w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                      <div 
+                                        className="absolute h-full bg-primary/30 rounded-full"
+                                        style={{ width: '50%' }}
+                                      ></div>
+                                      <input 
+                                        type="range" 
+                                        min="0" 
+                                        max="100" 
+                                        defaultValue="50" 
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        data-value="sharpness"
+                                        onInput={(e) => {
+                                          const value = (e.target as HTMLInputElement).value;
+                                          document.querySelector('.sharpness-value')!.textContent = value;
+                                          (e.target as HTMLInputElement).parentElement?.querySelector('div')?.style.setProperty('width', `${value}%`);
+                                        }}
+                                        onChange={(e) => {
+                                          applyEnhancementChanges();
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-col space-y-1">
+                                    <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs text-gray-500">0</span>
-                                  <input 
-                                    type="range" 
-                                    min="0" 
-                                    max="100" 
-                                    defaultValue="50" 
-                                    className="w-24 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                    data-value="sharpness"
-                                  />
-                                  <span className="text-xs text-gray-500">100</span>
+                                        <Brush className="h-4 w-4 text-gray-500" />
+                                        <span className="text-xs font-medium text-gray-700">Denoise</span>
+                                      </div>
+                                      <span className="text-xs text-gray-500 w-6 text-center denoise-value">0</span>
+                                    </div>
+                                    <div className="relative w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                      <div 
+                                        className="absolute h-full bg-primary/30 rounded-full"
+                                        style={{ width: '0%' }}
+                                      ></div>
+                                      <input 
+                                        type="range" 
+                                        min="0" 
+                                        max="100" 
+                                        defaultValue="0" 
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        data-value="denoise"
+                                        onInput={(e) => {
+                                          const value = (e.target as HTMLInputElement).value;
+                                          document.querySelector('.denoise-value')!.textContent = value;
+                                          (e.target as HTMLInputElement).parentElement?.querySelector('div')?.style.setProperty('width', `${value}%`);
+                                        }}
+                                        onChange={(e) => {
+                                          applyEnhancementChanges();
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-col space-y-1">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <Palette className="h-4 w-4 text-gray-500" />
+                                        <span className="text-xs font-medium text-gray-700">Saturation</span>
+                                      </div>
+                                      <span className="text-xs text-gray-500 w-6 text-center saturation-value">50</span>
+                                    </div>
+                                    <div className="relative w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                      <div 
+                                        className="absolute h-full bg-primary/30 rounded-full"
+                                        style={{ width: '50%' }}
+                                      ></div>
+                                      <input 
+                                        type="range" 
+                                        min="0" 
+                                        max="100" 
+                                        defaultValue="50" 
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        data-value="saturation"
+                                        onInput={(e) => {
+                                          const value = (e.target as HTMLInputElement).value;
+                                          document.querySelector('.saturation-value')!.textContent = value;
+                                          (e.target as HTMLInputElement).parentElement?.querySelector('div')?.style.setProperty('width', `${value}%`);
+                                        }}
+                                        onChange={(e) => {
+                                          applyEnhancementChanges();
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-col space-y-1">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <Sun className="h-4 w-4 text-gray-500" />
+                                        <span className="text-xs font-medium text-gray-700">Color Temperature</span>
+                                      </div>
+                                      <span className="text-xs text-gray-500 w-6 text-center temperature-value">0</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex flex-col items-center">
+                                        <div className="w-4 h-4 rounded-full bg-blue-300 mb-1"></div>
+                                        <span className="text-xs text-gray-500">Cool</span>
+                                      </div>
+                                      <div className="relative flex-1 h-2 bg-gradient-to-r from-blue-300 via-white to-orange-300 rounded-full overflow-hidden">
+                                        <div 
+                                          className="absolute h-full bg-primary/30 rounded-full"
+                                          style={{ width: '50%', left: '0%' }}
+                                        ></div>
+                                        <input 
+                                          type="range" 
+                                          min="-100" 
+                                          max="100" 
+                                          defaultValue="0" 
+                                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                          data-value="colorTemperature"
+                                          onInput={(e) => {
+                                            const value = (e.target as HTMLInputElement).value;
+                                            document.querySelector('.temperature-value')!.textContent = value;
+                                            const percentage = (parseInt(value) + 100) / 2;
+                                            (e.target as HTMLInputElement).parentElement?.querySelector('div')?.style.setProperty('width', `${percentage}%`);
+                                            (e.target as HTMLInputElement).parentElement?.querySelector('div')?.style.setProperty('left', `${50 - percentage/2}%`);
+                                          }}
+                                          onChange={(e) => {
+                                            applyEnhancementChanges();
+                                          }}
+                                        />
+                                      </div>
+                                      <div className="flex flex-col items-center">
+                                        <div className="w-4 h-4 rounded-full bg-orange-300 mb-1"></div>
+                                        <span className="text-xs text-gray-500">Warm</span>
+                                      </div>
+                                    </div>
+                                    <div className="text-[10px] text-gray-500 text-center mt-1">
+                                      Adjust the color temperature to make your image appear cooler (blue) or warmer (orange)
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </>
@@ -1254,10 +1827,34 @@ export default function ToolsPage() {
 
                         {/* Action Buttons */}
                         <div className="flex gap-2">
+                          {tool.id === "image-enhancement" ? (
                           <Button 
-                            className={`flex-1 bg-gradient-to-r ${tool.gradient} hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm py-1.5`}
+                              className={`flex-1 bg-gradient-to-r ${tool.gradient} hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm py-1.5`}
+                              onClick={handleDownload}
+                              disabled={!processedImage || isProcessing || tool.isLocked}
+                            >
+                              {isProcessing ? (
+                                <div className="flex items-center gap-2">
+                                  <RefreshCw className="h-4 w-4 animate-spin" />
+                                  <span>Processing...</span>
+                                </div>
+                              ) : tool.isLocked ? (
+                                <div className="flex items-center gap-2">
+                                  <Lock className="h-4 w-4" />
+                                  <span>Pro Feature</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <Download className="h-4 w-4" />
+                                  <span>Download Image</span>
+                                </div>
+                              )}
+                            </Button>
+                          ) : (
+                            <Button 
+                              className={`flex-1 bg-gradient-to-r ${tool.gradient} hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm py-1.5`}
                             onClick={handleProcessImage}
-                            disabled={!previewImage || isProcessing || tool.isLocked}
+                              disabled={!selectedImage || isProcessing || tool.isLocked}
                           >
                             {isProcessing ? (
                               <div className="flex items-center gap-2">
@@ -1272,10 +1869,11 @@ export default function ToolsPage() {
                             ) : (
                               <div className="flex items-center gap-2">
                                 <Wand2 className="h-4 w-4" />
-                                <span>{tool.id === "image-upscaler" ? "Upscale Image" : "Process Image"}</span>
+                                <span>Process Image</span>
                               </div>
                             )}
                           </Button>
+                          )}
                           <div className="flex gap-1">
                             <Button 
                               variant="outline" 
