@@ -173,9 +173,9 @@ export default function ImageConverterPage() {
                     <Image
                       src={processedImage}
                         alt="Processed image"
-                        fill
+                      fill
                         className="object-contain"
-                      />
+                    />
                     </div>
                     
                     {metadata && (

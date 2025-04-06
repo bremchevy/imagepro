@@ -21,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Info } from "lucide-react";
 import { User, ImageProcessingHistoryItem } from "@/types/user";
 import { toast } from "sonner";
+import { upscaleImage } from '@/utils/imageUpscaler';
 
 const allTools = [
   {
@@ -169,17 +170,36 @@ export default function ToolsPage() {
       
       // Add tool-specific parameters
       if (selectedTool.id === "background-removal") {
-        formData.append('backgroundType', backgroundType);
+      formData.append('backgroundType', backgroundType);
       } else if (selectedTool.id === "image-upscaler") {
         // Get scale factor and quality from the UI
-        const scaleFactorElement = document.querySelector('[data-tool="image-upscaler"] [data-value="scaleFactor"]') as HTMLSelectElement;
-        const qualityElement = document.querySelector('[data-tool="image-upscaler"] [data-value="quality"]') as HTMLSelectElement;
+        const scaleFactorElement = document.querySelector('[data-value="scaleFactor"]') as HTMLSelectElement;
+        const qualityElement = document.querySelector('[data-value="quality"]') as HTMLSelectElement;
         
-        const scaleFactor = scaleFactorElement?.value || "2x";
+        // Parse the scale factor value (e.g., "2x" -> 2)
+        const scaleFactorValue = scaleFactorElement?.value || "2x";
+        const scaleFactor = parseFloat(scaleFactorValue.replace('x', ''));
         const quality = qualityElement?.value || "high";
         
-        formData.append('scaleFactor', scaleFactor);
-        formData.append('quality', quality);
+        // Get the image file
+        const imageFile = formData.get('image') as File;
+        
+        try {
+          // Process image client-side
+          const processedImage = await upscaleImage(imageFile, {
+            scaleFactor,
+            quality: quality as 'low' | 'medium' | 'high'
+          });
+          
+          // Update the UI with the processed image
+          setProcessedImage(processedImage);
+          setShowComparison(true);
+          setIsProcessing(false);
+          return;
+        } catch (error) {
+          console.error('Error processing image:', error);
+          throw new Error('Failed to process image');
+        }
       } else if (selectedTool.id === "image-enhancement") {
         // Get enhancement parameters from the UI
         const brightnessElement = document.querySelector('[data-tool="image-enhancement"] [data-value="brightness"]') as HTMLInputElement;
@@ -364,10 +384,10 @@ export default function ToolsPage() {
   };
 
   // Add this function to handle the slider interaction
-  const handleSliderMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleSliderMove = (e: MouseEvent) => {
     if (!showComparison) return;
     
-    const container = e.currentTarget.parentElement;
+    const container = document.querySelector('.comparison-container');
     if (!container) return;
     
     const rect = container.getBoundingClientRect();
@@ -380,20 +400,21 @@ export default function ToolsPage() {
   
   const handleSliderMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
-    document.addEventListener('mousemove', handleSliderMove as any);
+    e.stopPropagation();
+    document.addEventListener('mousemove', handleSliderMove);
     document.addEventListener('mouseup', handleSliderMouseUp);
   };
   
   const handleSliderMouseUp = () => {
-    document.removeEventListener('mousemove', handleSliderMove as any);
+    document.removeEventListener('mousemove', handleSliderMove);
     document.removeEventListener('mouseup', handleSliderMouseUp);
   };
   
   // Add touch event handlers for mobile responsiveness
-  const handleSliderTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+  const handleSliderTouchMove = (e: TouchEvent) => {
     if (!showComparison) return;
     
-    const container = e.currentTarget.parentElement;
+    const container = document.querySelector('.comparison-container');
     if (!container) return;
     
     const rect = container.getBoundingClientRect();
@@ -407,21 +428,22 @@ export default function ToolsPage() {
   
   const handleSliderTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     e.preventDefault();
-    document.addEventListener('touchmove', handleSliderTouchMove as any, { passive: false });
+    e.stopPropagation();
+    document.addEventListener('touchmove', handleSliderTouchMove, { passive: false });
     document.addEventListener('touchend', handleSliderTouchEnd);
   };
   
   const handleSliderTouchEnd = () => {
-    document.removeEventListener('touchmove', handleSliderTouchMove as any);
+    document.removeEventListener('touchmove', handleSliderTouchMove);
     document.removeEventListener('touchend', handleSliderTouchEnd);
   };
   
   // Clean up event listeners when component unmounts
   useEffect(() => {
     return () => {
-      document.removeEventListener('mousemove', handleSliderMove as any);
+      document.removeEventListener('mousemove', handleSliderMove);
       document.removeEventListener('mouseup', handleSliderMouseUp);
-      document.removeEventListener('touchmove', handleSliderTouchMove as any);
+      document.removeEventListener('touchmove', handleSliderTouchMove);
       document.removeEventListener('touchend', handleSliderTouchEnd);
     };
   }, []);
@@ -555,32 +577,32 @@ export default function ToolsPage() {
                     />
                     {/* Only show action buttons when not in comparison mode */}
                     {!showComparison && (
-                      <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 rounded-lg">
-                        <Button
-                          variant="secondary"
-                          className="bg-white text-gray-900 hover:bg-white/90"
+                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 rounded-lg">
+                      <Button
+                        variant="secondary"
+                        className="bg-white text-gray-900 hover:bg-white/90"
                           onClick={(e) => {
                             e.stopPropagation(); // Prevent event bubbling
                             handleDownload();
                           }}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download Result
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          className="bg-white text-gray-900 hover:bg-white/90"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Result
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="bg-white text-gray-900 hover:bg-white/90"
                           onClick={(e) => {
                             e.stopPropagation(); // Prevent event bubbling
-                            setProcessedImage(null);
-                            setPreviewImage(null);
+                          setProcessedImage(null);
+                          setPreviewImage(null);
                             setShowComparison(false);
-                          }}
-                        >
-                          <Upload className="h-4 w-4 mr-2" />
-                          Upload New Image
-                        </Button>
-                      </div>
+                        }}
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload New Image
+                      </Button>
+                    </div>
                     )}
                   </div>
                 ) : previewImage ? (
@@ -624,7 +646,7 @@ export default function ToolsPage() {
               {/* Comparison Slider - Only show when we have both images */}
               {showComparison && previewImage && processedImage && (
                 <div className="absolute inset-0 pointer-events-none">
-                  <div className="relative w-full h-full">
+                  <div className="relative w-full h-full comparison-container">
                     {/* Original Image (Left side) */}
                     <div className="absolute inset-0 overflow-hidden rounded-lg">
                       <div className="absolute inset-0" style={{ width: `${comparisonPosition}%` }}>
@@ -670,6 +692,28 @@ export default function ToolsPage() {
                         </div>
                       </div>
                     </div>
+                    
+                    {/* Labels that move with the slider */}
+                    <div 
+                      className="absolute top-4 bg-black/50 text-white px-2 py-1 rounded text-xs"
+                      style={{ 
+                        left: '16px', 
+                        opacity: comparisonPosition > 10 ? 1 : 0,
+                        transform: 'none'
+                      }}
+                    >
+                      Original
+                    </div>
+                    <div 
+                      className="absolute top-4 bg-black/50 text-white px-2 py-1 rounded text-xs"
+                      style={{ 
+                        right: '16px', 
+                        opacity: comparisonPosition < 90 ? 1 : 0,
+                        transform: 'none'
+                      }}
+                    >
+                      {selectedTool.id === "image-upscaler" ? "Upscaled" : "Processed"}
+                    </div>
                   </div>
                 </div>
               )}
@@ -686,7 +730,7 @@ export default function ToolsPage() {
 
               {/* Comparison Toggle Button - Only show when we have both images */}
               {processedImage && previewImage && (
-                <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
+                <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10">
                   <Button
                     variant="outline"
                     size="sm"
