@@ -205,8 +205,8 @@ export default function ImageUpscalerPage() {
       img.src = result.processedImage;
       
       // Show success notification
-      toast.success("Image upscaled successfully!", {
-        description: "Your image has been upscaled with enhanced details.",
+      toast.success("Image Upscaled", {
+        description: "Your image has been successfully upscaled.",
       });
     } catch (error) {
       console.error('Error processing image:', error);

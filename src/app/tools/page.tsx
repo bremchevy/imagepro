@@ -599,7 +599,7 @@ export default function ToolsPage() {
         // In a real implementation, you would call your upscaling service
         await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing
         
-        // For demo purposes, we'll just create a simple upscaling effect
+        // For demo purposes, we'll create an improved upscaling effect
         const img = document.createElement('img');
         img.src = selectedImage;
         await new Promise(resolve => {
@@ -611,6 +611,7 @@ export default function ToolsPage() {
         const newWidth = img.width * scale;
         const newHeight = img.height * scale;
         
+        // Create a canvas for the upscaled image
         const canvas = document.createElement('canvas');
         canvas.width = newWidth;
         canvas.height = newHeight;
@@ -620,19 +621,109 @@ export default function ToolsPage() {
           throw new Error('Could not get canvas context');
         }
         
-        // Use better quality settings for high quality
+        // Apply advanced upscaling techniques based on quality setting
         if (quality === 'high') {
+          // High quality upscaling with multiple passes
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
+          
+          // First pass: Draw at original size with high quality
+          ctx.drawImage(img, 0, 0, img.width, img.height);
+          
+          // Second pass: Apply a subtle sharpening effect
+          const imageData = ctx.getImageData(0, 0, img.width, img.height);
+          const data = imageData.data;
+          
+          // Simple sharpening kernel
+          for (let y = 1; y < img.height - 1; y++) {
+            for (let x = 1; x < img.width - 1; x++) {
+              const idx = (y * img.width + x) * 4;
+              
+              // Get surrounding pixels
+              const top = (y - 1) * img.width + x;
+              const bottom = (y + 1) * img.width + x;
+              const left = y * img.width + (x - 1);
+              const right = y * img.width + (x + 1);
+              
+              // Apply sharpening
+              for (let c = 0; c < 3; c++) {
+                const center = data[idx + c];
+                const surrounding = (
+                  data[top * 4 + c] +
+                  data[bottom * 4 + c] +
+                  data[left * 4 + c] +
+                  data[right * 4 + c]
+                ) / 4;
+                
+                // Enhance contrast between center and surrounding pixels
+                data[idx + c] = center + (center - surrounding) * 0.5;
+              }
+            }
+          }
+          
+          ctx.putImageData(imageData, 0, 0);
+          
+          // Third pass: Scale up with high quality
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = newWidth;
+          tempCanvas.height = newHeight;
+          const tempCtx = tempCanvas.getContext('2d');
+          
+          if (tempCtx) {
+            tempCtx.imageSmoothingEnabled = true;
+            tempCtx.imageSmoothingQuality = 'high';
+            tempCtx.drawImage(canvas, 0, 0, img.width, img.height, 0, 0, newWidth, newHeight);
+            
+            // Copy back to original canvas
+            ctx.clearRect(0, 0, newWidth, newHeight);
+            ctx.drawImage(tempCanvas, 0, 0);
+          }
         } else if (quality === 'medium') {
+          // Medium quality upscaling
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'medium';
+          
+          // Draw the original image scaled up
+          ctx.drawImage(img, 0, 0, newWidth, newHeight);
+          
+          // Apply a subtle sharpening effect
+          const imageData = ctx.getImageData(0, 0, newWidth, newHeight);
+          const data = imageData.data;
+          
+          // Simple sharpening kernel with reduced intensity
+          for (let y = 1; y < newHeight - 1; y++) {
+            for (let x = 1; x < newWidth - 1; x++) {
+              const idx = (y * newWidth + x) * 4;
+              
+              // Get surrounding pixels
+              const top = (y - 1) * newWidth + x;
+              const bottom = (y + 1) * newWidth + x;
+              const left = y * newWidth + (x - 1);
+              const right = y * newWidth + (x + 1);
+              
+              // Apply sharpening with reduced intensity
+              for (let c = 0; c < 3; c++) {
+                const center = data[idx + c];
+                const surrounding = (
+                  data[top * 4 + c] +
+                  data[bottom * 4 + c] +
+                  data[left * 4 + c] +
+                  data[right * 4 + c]
+                ) / 4;
+                
+                // Enhance contrast between center and surrounding pixels
+                data[idx + c] = center + (center - surrounding) * 0.3;
+              }
+            }
+          }
+          
+          ctx.putImageData(imageData, 0, 0);
         } else {
-          ctx.imageSmoothingEnabled = false;
+          // Low quality upscaling - just basic scaling
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'low';
+          ctx.drawImage(img, 0, 0, newWidth, newHeight);
         }
-        
-        // Draw the original image scaled up
-        ctx.drawImage(img, 0, 0, newWidth, newHeight);
         
         // Set the processed image
         setProcessedImage(canvas.toDataURL('image/jpeg', 0.95));
@@ -648,7 +739,7 @@ export default function ToolsPage() {
         }
         
         toast.success("Image Upscaled", {
-          description: `Your image has been upscaled to ${scaleFactor} successfully.`,
+          description: "Your image has been successfully upscaled.",
         });
       } else if (selectedTool.id === "image-converter") {
         // Convert base64 to blob
