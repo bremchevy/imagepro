@@ -225,9 +225,15 @@ export default function ToolsPage() {
     }
   };
 
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isApplyingPreset, setIsApplyingPreset] = useState(false);
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
   // Function to apply preset style
   const applyPresetStyle = (style: keyof typeof presetStyles) => {
     if (presetStyles[style]) {
+      setIsApplyingPreset(true);
+      
       setEnhancementSettings(presetStyles[style]);
       
       // Update UI elements to reflect the new settings
@@ -305,75 +311,106 @@ export default function ToolsPage() {
         elements.autoEnhance.checked = presetStyles[style].autoEnhance;
       }
       
-      // Apply the changes
-      applyEnhancementChanges();
+      // Apply the changes with a slight delay to ensure UI updates first
+      setTimeout(() => {
+        applyEnhancementChanges();
+        
+        // Show success notification only when complete
+        toast.success(`${style} style applied`, {
+          description: "The preset style has been applied successfully.",
+        });
+        
+        setIsApplyingPreset(false);
+      }, 100);
     }
   };
 
-  // Function to apply enhancement changes in real-time
+  // Function to apply enhancement changes in real-time with debouncing
   const applyEnhancementChanges = async () => {
     if (!selectedImage) return;
     
-    try {
-      // Get current values from UI
-      const brightnessElement = document.querySelector('[data-value="brightness"]') as HTMLInputElement;
-      const contrastElement = document.querySelector('[data-value="contrast"]') as HTMLInputElement;
-      const sharpnessElement = document.querySelector('[data-value="sharpness"]') as HTMLInputElement;
-      const denoiseElement = document.querySelector('[data-value="denoise"]') as HTMLInputElement;
-      const saturationElement = document.querySelector('[data-value="saturation"]') as HTMLInputElement;
-      const colorTemperatureElement = document.querySelector('[data-value="colorTemperature"]') as HTMLInputElement;
-      const faceEnhancementElement = document.querySelector('[data-value="faceEnhancement"]') as HTMLInputElement;
-      const backgroundEnhancementElement = document.querySelector('[data-value="backgroundEnhancement"]') as HTMLInputElement;
-      const autoEnhanceElement = document.querySelector('[data-value="autoEnhance"]') as HTMLInputElement;
-      
-      const brightness = brightnessElement?.value || "50";
-      const contrast = contrastElement?.value || "50";
-      const sharpness = sharpnessElement?.value || "50";
-      const denoise = denoiseElement?.value || "0";
-      const saturation = saturationElement?.value || "50";
-      const colorTemperature = colorTemperatureElement?.value || "0";
-      const faceEnhancement = faceEnhancementElement?.checked || false;
-      const backgroundEnhancement = backgroundEnhancementElement?.checked || false;
-      const autoEnhance = autoEnhanceElement?.checked || false;
-      
-      // Update state
-      setEnhancementSettings({
-        brightness: parseInt(brightness),
-        contrast: parseInt(contrast),
-        sharpness: parseInt(sharpness),
-        denoise: parseInt(denoise),
-        saturation: parseInt(saturation),
-        colorTemperature: parseInt(colorTemperature),
-        faceEnhancement,
-        backgroundEnhancement,
-        autoEnhance
-      });
-      
-      // Convert base64 to blob
-      const response = await fetch(selectedImage);
-      const blob = await response.blob();
-      
-      // Create a File object from the blob
-      const file = new File([blob], "image.png", { type: "image/png" });
-      
-      // Process image client-side
-      const enhancedImage = await enhanceImage(file, {
-        brightness: parseInt(brightness),
-        contrast: parseInt(contrast),
-        sharpness: parseInt(sharpness),
-        denoise: parseInt(denoise),
-        saturation: parseInt(saturation),
-        colorTemperature: parseInt(colorTemperature),
-        faceEnhancement,
-        backgroundEnhancement,
-        autoEnhance
-      });
-      
-      // Update the processed image
-      setProcessedImage(enhancedImage);
-    } catch (error) {
-      console.error('Error applying enhancement changes:', error);
+    // Clear any existing timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
     }
+    
+    // Set a new timer to debounce the enhancement process
+    const timer = setTimeout(async () => {
+      try {
+        setIsEnhancing(true);
+        
+        // Get current values from UI
+        const brightnessElement = document.querySelector('[data-value="brightness"]') as HTMLInputElement;
+        const contrastElement = document.querySelector('[data-value="contrast"]') as HTMLInputElement;
+        const sharpnessElement = document.querySelector('[data-value="sharpness"]') as HTMLInputElement;
+        const denoiseElement = document.querySelector('[data-value="denoise"]') as HTMLInputElement;
+        const saturationElement = document.querySelector('[data-value="saturation"]') as HTMLInputElement;
+        const colorTemperatureElement = document.querySelector('[data-value="colorTemperature"]') as HTMLInputElement;
+        const faceEnhancementElement = document.querySelector('[data-value="faceEnhancement"]') as HTMLInputElement;
+        const backgroundEnhancementElement = document.querySelector('[data-value="backgroundEnhancement"]') as HTMLInputElement;
+        const autoEnhanceElement = document.querySelector('[data-value="autoEnhance"]') as HTMLInputElement;
+        
+        const brightness = brightnessElement?.value || "50";
+        const contrast = contrastElement?.value || "50";
+        const sharpness = sharpnessElement?.value || "50";
+        const denoise = denoiseElement?.value || "0";
+        const saturation = saturationElement?.value || "50";
+        const colorTemperature = colorTemperatureElement?.value || "0";
+        const faceEnhancement = faceEnhancementElement?.checked || false;
+        const backgroundEnhancement = backgroundEnhancementElement?.checked || false;
+        const autoEnhance = autoEnhanceElement?.checked || false;
+        
+        // Update state
+        setEnhancementSettings({
+          brightness: parseInt(brightness),
+          contrast: parseInt(contrast),
+          sharpness: parseInt(sharpness),
+          denoise: parseInt(denoise),
+          saturation: parseInt(saturation),
+          colorTemperature: parseInt(colorTemperature),
+          faceEnhancement,
+          backgroundEnhancement,
+          autoEnhance
+        });
+        
+        // Convert base64 to blob
+        const response = await fetch(selectedImage);
+        const blob = await response.blob();
+        
+        // Create a File object from the blob
+        const file = new File([blob], "image.png", { type: "image/png" });
+        
+        // Process image client-side
+        const enhancedImage = await enhanceImage(file, {
+          brightness: parseInt(brightness),
+          contrast: parseInt(contrast),
+          sharpness: parseInt(sharpness),
+          denoise: parseInt(denoise),
+          saturation: parseInt(saturation),
+          colorTemperature: parseInt(colorTemperature),
+          faceEnhancement,
+          backgroundEnhancement,
+          autoEnhance
+        });
+        
+        // Update the processed image
+        setProcessedImage(enhancedImage);
+        
+        // Show success notification only when complete
+        toast.success("Enhancement Applied", {
+          description: "Image enhancement has been applied successfully.",
+        });
+      } catch (error) {
+        console.error('Error applying enhancement changes:', error);
+        toast.error("Enhancement Failed", {
+          description: "Failed to apply image enhancement. Please try again.",
+        });
+      } finally {
+        setIsEnhancing(false);
+      }
+    }, 300); // 300ms debounce time
+    
+    setDebounceTimer(timer);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -455,11 +492,6 @@ export default function ToolsPage() {
           
           // Make API request to remove.bg
           console.log('Making API request to remove.bg with API key:', process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY ? 'API key exists' : 'API key missing');
-          
-          // Show a loading toast
-          toast.info("Processing", {
-            description: "Removing background from your image...",
-          });
           
           // Check if API key exists
           if (!process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY) {
@@ -1609,8 +1641,66 @@ export default function ToolsPage() {
 
                           {tool.id === "image-enhancement" && (
                             <>
-                              {/* Preset Styles Section */}
-                              <div className="mb-6 bg-white/50 backdrop-blur-sm p-4 rounded-xl border border-gray-100 shadow-sm">
+                              {/* Loading Overlay - Updated Design */}
+                              {isEnhancing && (
+                                <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center rounded-lg z-50">
+                                  <div className="flex flex-col items-center gap-4 bg-white/90 p-6 rounded-2xl shadow-xl border border-gray-100">
+                                    <div className="relative">
+                                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                      </div>
+                                      <div className="absolute inset-0 flex items-center justify-center">
+                                        <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+                                      </div>
+                                    </div>
+                                    <div className="text-center">
+                                      <span className="text-sm font-medium text-gray-800">Enhancing Image</span>
+                                      <p className="text-xs text-gray-500 mt-1">Applying your adjustments...</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Processing Overlay - Updated Design */}
+                              {isProcessing && (
+                                <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center rounded-lg z-50">
+                                  <div className="flex flex-col items-center gap-4 bg-white/90 p-6 rounded-2xl shadow-xl border border-gray-100">
+                                    <div className="relative">
+                                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                      </div>
+                                      <div className="absolute inset-0 flex items-center justify-center">
+                                        <RefreshCw className="h-5 w-5 text-primary animate-spin" />
+                                      </div>
+                                    </div>
+                                    <div className="text-center">
+                                      <span className="text-sm font-medium text-gray-800">Processing Image</span>
+                                      <p className="text-xs text-gray-500 mt-1">Applying final adjustments...</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Preset Styles Section - Updated Design */}
+                              <div className="mb-6 bg-white/50 backdrop-blur-sm p-4 rounded-xl border border-gray-100 shadow-sm relative">
+                                {isApplyingPreset && (
+                                  <div className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center rounded-xl z-10">
+                                    <div className="flex flex-col items-center gap-3 bg-white/90 p-4 rounded-xl shadow-lg border border-gray-100">
+                                      <div className="relative">
+                                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                          <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                        </div>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                          <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                                        </div>
+                                      </div>
+                                      <div className="text-center">
+                                        <span className="text-sm font-medium text-gray-800">Applying Preset</span>
+                                        <p className="text-xs text-gray-500 mt-1">Please wait...</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                                 <h3 className="text-sm font-medium mb-3 text-gray-800 flex items-center">
                                   <Sparkles className="h-4 w-4 mr-2 text-primary" />
                                   Preset Styles
