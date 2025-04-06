@@ -1177,7 +1177,7 @@ export default function ToolsPage() {
               </Card>
 
               {/* Comparison Slider - Only show when we have both images */}
-              {showComparison && selectedImage && processedImage && selectedTool.id !== "image-converter" && (
+              {showComparison && selectedImage && processedImage && selectedTool.id !== "image-converter" && selectedTool.id !== "background-removal" && (
                 <div className="absolute inset-0 pointer-events-none">
                   <div className="relative w-full h-full comparison-container">
                     {/* Original Image (Left side) */}
@@ -1262,7 +1262,7 @@ export default function ToolsPage() {
               )}
 
               {/* Comparison Toggle Button - Only show when we have both images and not for image converter */}
-              {processedImage && selectedImage && selectedTool.id !== "image-converter" && (
+              {processedImage && selectedImage && selectedTool.id !== "image-converter" && selectedTool.id !== "background-removal" && (
                 <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10">
                   <Button
                     variant="outline"
