@@ -128,12 +128,15 @@ export default function ToolsPage() {
   const progress = (editCount / FREE_TRIAL_LIMIT) * 100;
   const remainingTrials = FREE_TRIAL_LIMIT - editCount;
 
+  const [toolChanged, setToolChanged] = useState(false);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
+        setToolChanged(false);
       };
       reader.readAsDataURL(file);
     }
@@ -146,6 +149,7 @@ export default function ToolsPage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
+        setToolChanged(false);
       };
       reader.readAsDataURL(file);
     }
@@ -448,6 +452,27 @@ export default function ToolsPage() {
     };
   }, []);
 
+  const handleToolSelect = (tool: string) => {
+    const previousTool = selectedTool;
+    setSelectedTool(allTools.find(t => t.id === tool) || allTools[0]);
+    
+    // Only reset if we're actually changing tools
+    if (previousTool.id !== tool) {
+      // Reset image preview when switching tools
+      setPreviewImage(null);
+      setProcessedImage(null);
+      setComparisonPosition(50);
+      setShowComparison(false);
+      setIsProcessing(false);
+      setToolChanged(true);
+      
+      // Show a toast notification to inform the user
+      toast.info("Tool changed", {
+        description: "Please upload a new image to use this tool.",
+      });
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-50/50 to-white">
       <main className="flex-1">
@@ -637,8 +662,15 @@ export default function ToolsPage() {
                   <div className="text-center">
                     <Upload className="mx-auto h-10 w-10 text-gray-400" />
                     <p className="mt-3 text-sm text-gray-600 font-medium">
-                      Drag and drop your image here, or click to upload
+                      {toolChanged 
+                        ? "Upload a new image to use this tool" 
+                        : "Drag and drop your image here, or click to upload"}
                     </p>
+                    {toolChanged && (
+                      <p className="mt-1 text-xs text-primary">
+                        Tool changed - new image required
+                      </p>
+                    )}
                   </div>
                 )}
               </Card>
@@ -836,8 +868,7 @@ export default function ToolsPage() {
             {/* Right Side - Tool Selection */}
             <div className="space-y-3 sm:space-y-4">
               <Tabs defaultValue={tools[0].id} className="w-full" onValueChange={(value) => {
-                const tool = tools.find(t => t.id === value);
-                if (tool) setSelectedTool(tool);
+                handleToolSelect(value);
               }}>
                 <TabsList className="w-full flex flex-wrap bg-white/80 backdrop-blur-sm p-1.5 rounded-xl shadow-sm border border-gray-100">
                   {tools.map((tool) => (
