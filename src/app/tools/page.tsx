@@ -1141,19 +1141,32 @@ export default function ToolsPage() {
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
                     {isProcessing && (
-                      <div className="absolute inset-0 bg-gradient-to-br from-black/70 to-black/50 backdrop-blur-md flex items-center justify-center rounded-lg">
-                        <div className="text-center p-6 max-w-xs">
-                          <div className="relative w-16 h-16 mx-auto mb-4">
-                            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 animate-pulse"></div>
-                            <div className="absolute inset-0 rounded-full border-2 border-primary/30 border-t-primary animate-spin"></div>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <RefreshCw className="h-6 w-6 text-white" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/70 to-black/80 backdrop-blur-lg flex items-center justify-center rounded-lg">
+                        <div className="text-center p-8 max-w-sm relative">
+                          {/* Main content */}
+                          <div className="relative">
+                            {/* Animated icon */}
+                            <div className="relative w-20 h-20 mx-auto mb-6">
+                              <div className="absolute inset-0 rounded-full border-4 border-primary/30 border-t-primary animate-spin"></div>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                                  <RefreshCw className="h-6 w-6 text-white animate-spin" />
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                          <h3 className="text-white text-base font-medium mb-2">Processing your image</h3>
-                          <p className="text-white/70 text-xs mb-4">Our AI is working its magic to transform your image</p>
-                          <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full w-1/3 bg-gradient-to-r from-primary/80 to-primary rounded-full animate-shimmer"></div>
+                            
+                            {/* Text content */}
+                            <h3 className="text-white text-xl font-semibold mb-3">
+                              Processing your image
+                            </h3>
+                            <p className="text-white/70 text-sm mb-6">
+                              Our AI is working its magic
+                            </p>
+                            
+                            {/* Progress bar */}
+                            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full w-1/3 bg-gradient-to-r from-primary/80 via-primary to-primary/80 rounded-full animate-shimmer"></div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1250,19 +1263,6 @@ export default function ToolsPage() {
                     >
                       {selectedTool.id === "image-upscaler" ? "Upscaled" : "Processed"}
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Processing Indicator */}
-              {isProcessing && (
-                <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-gradient-to-r from-primary/90 to-primary/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg border border-white/10">
-                  <div className="flex items-center gap-2">
-                    <div className="relative w-3 h-3">
-                      <div className="absolute inset-0 rounded-full bg-white/30 animate-ping"></div>
-                      <div className="absolute inset-0 rounded-full bg-white"></div>
-                    </div>
-                    <span className="text-xs sm:text-sm text-white font-medium">Processing</span>
                   </div>
                 </div>
               )}
@@ -1868,10 +1868,7 @@ export default function ToolsPage() {
                             >
                               {isProcessing ? (
                                 <div className="flex items-center gap-2">
-                                  <div className="relative w-4 h-4">
-                                    <div className="absolute inset-0 rounded-full bg-white/30 animate-ping"></div>
-                                    <div className="absolute inset-0 rounded-full bg-white"></div>
-                                  </div>
+                                  <RefreshCw className="h-4 w-4 animate-spin" />
                                   <span>Processing...</span>
                                 </div>
                               ) : (
