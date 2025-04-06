@@ -14,7 +14,11 @@ const publicPaths = [
   '/pricing',
   '/about',
   '/contact',
-  '/dashboard/account/user-management'
+  '/dashboard/account/user-management',
+  '/api/image-converter',
+  '/api/image-upscaler',
+  '/api/image-enhancer',
+  '/api/background-removal'
 ]
 
 // Define dashboard paths that require authentication

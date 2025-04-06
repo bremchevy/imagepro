@@ -22,8 +22,16 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await imageFile.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    // Get image metadata
+    const metadata = await sharp(buffer).metadata();
+    const originalFormat = metadata.format || 'unknown';
+    const originalWidth = metadata.width || 0;
+    const originalHeight = metadata.height || 0;
+
     // Process image with Sharp based on output format
     let processedBuffer;
+    
+    console.log(`Converting image to format: ${outputFormat}`);
     
     if (outputFormat === 'png') {
       processedBuffer = await sharp(buffer)
@@ -45,17 +53,52 @@ export async function POST(request: NextRequest) {
       processedBuffer = await sharp(buffer)
         .tiff({ quality: qualityValue })
         .toBuffer();
+    } else if (outputFormat === 'avif') {
+      processedBuffer = await sharp(buffer)
+        .avif({ quality: qualityValue })
+        .toBuffer();
+    } else if (outputFormat === 'heic') {
+      processedBuffer = await sharp(buffer)
+        .heif({ quality: qualityValue })
+        .toBuffer();
     } else {
+      console.error(`Unsupported output format: ${outputFormat}`);
       return NextResponse.json(
         { error: 'Unsupported output format' },
         { status: 400 }
       );
     }
+    
+    console.log(`Successfully converted image to ${outputFormat}`);
 
-    // Convert to base64
-    const base64Image = `data:image/${outputFormat};base64,${processedBuffer.toString('base64')}`;
+    // Get processed image metadata
+    const processedMetadata = await sharp(processedBuffer).metadata();
+    const processedWidth = processedMetadata.width || 0;
+    const processedHeight = processedMetadata.height || 0;
+    const processedSize = processedBuffer.length;
 
-    return NextResponse.json({ processedImage: base64Image });
+    // Convert to base64 with proper MIME type
+    let mimeType = outputFormat;
+    if (outputFormat === 'jpg') {
+      mimeType = 'jpeg';
+    } else if (outputFormat === 'heic') {
+      mimeType = 'heif';
+    }
+    
+    const base64Image = `data:image/${mimeType};base64,${processedBuffer.toString('base64')}`;
+
+    return NextResponse.json({ 
+      processedImage: base64Image,
+      metadata: {
+        originalFormat,
+        originalWidth,
+        originalHeight,
+        outputFormat,
+        processedWidth,
+        processedHeight,
+        processedSize
+      }
+    });
   } catch (error) {
     console.error('Error processing image:', error);
     return NextResponse.json(

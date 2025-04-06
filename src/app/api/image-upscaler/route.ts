@@ -43,116 +43,201 @@ export async function POST(request: NextRequest) {
     // Create a Sharp instance
     let sharpInstance = sharp(buffer);
 
-    // Step 1: Blur Detection and Analysis
-    // We'll use a simple approach to detect if the image might be blurry
-    // by analyzing the image's frequency content
+    // Step 1: Initial Noise Reduction and Preparation
+    sharpInstance = sharpInstance
+      .modulate({
+        brightness: 1.02,
+        saturation: 1.05
+      })
+      .convolve({
+        width: 3,
+        height: 3,
+        kernel: [
+          0.0625, 0.125, 0.0625,
+          0.125,  0.25,  0.125,
+          0.0625, 0.125, 0.0625
+        ]
+      });
+
+    // Step 2: Enhanced Blur Detection and Analysis
     const blurAnalysis = await analyzeBlur(sharpInstance);
     const isBlurry = blurAnalysis.isBlurry;
     const blurType = blurAnalysis.blurType;
 
-    // Step 2: Initial Processing - Apply appropriate deblurring based on blur type
+    // Step 3: Advanced Deblurring and Detail Recovery
     if (isBlurry) {
       if (blurType === 'motion') {
-        // For motion blur, apply directional sharpening
         sharpInstance = sharpInstance
           .convolve({
             width: 3,
             height: 3,
             kernel: [
-              -0.5, 0, 0.5,
-              -1, 0, 1,
-              -0.5, 0, 0.5
+              -1.8, 0, 1.8,
+              -2.8, 0, 2.8,
+              -1.8, 0, 1.8
             ]
+          })
+          .sharpen({
+            sigma: 2.2,
+            m1: 2.2,
+            m2: 0.9
           });
       } else if (blurType === 'outOfFocus') {
-        // For out-of-focus blur, apply a more aggressive sharpening
         sharpInstance = sharpInstance
           .sharpen({
-            sigma: 1.2,
-            m1: 1.2,
-            m2: 0.7
+            sigma: 2.2,
+            m1: 2.2,
+            m2: 0.9
+          })
+          .convolve({
+            width: 5,
+            height: 5,
+            kernel: [
+              -0.1, -0.1, -0.1, -0.1, -0.1,
+              -0.1,  0.2,  0.2,  0.2, -0.1,
+              -0.1,  0.2,  0.8,  0.2, -0.1,
+              -0.1,  0.2,  0.2,  0.2, -0.1,
+              -0.1, -0.1, -0.1, -0.1, -0.1
+            ]
           });
       } else {
-        // For general blur, apply standard sharpening
         sharpInstance = sharpInstance
           .sharpen({
-            sigma: 0.8,
-            m1: 0.8,
-            m2: 0.8
+            sigma: 2.0,
+            m1: 1.8,
+            m2: 0.9
+          })
+          .convolve({
+            width: 3,
+            height: 3,
+            kernel: [
+              -0.5, -0.5, -0.5,
+              -0.5,  5.0, -0.5,
+              -0.5, -0.5, -0.5
+            ]
           });
       }
     }
 
-    // Step 3: Detail Enhancement
-    // Apply techniques to recover and enhance details
+    // Step 4: Enhanced Detail Preservation
     sharpInstance = sharpInstance
-      // Enhance local contrast
       .modulate({
-        brightness: 1.03,
-        saturation: 1.05
+        brightness: 1.08,
+        saturation: 1.12
       })
-      // Apply a subtle edge enhancement
       .convolve({
         width: 3,
         height: 3,
         kernel: [
-          -0.3, -0.3, -0.3,
-          -0.3,  3.4, -0.3,
-          -0.3, -0.3, -0.3
+          -0.7, -0.7, -0.7,
+          -0.7,  6.0, -0.7,
+          -0.7, -0.7, -0.7
         ]
       });
 
-    // Step 4: Smart Upscaling
-    // Use a high-quality upscaling algorithm
+    // Step 5: Progressive Upscaling with Enhanced Steps
+    const steps = calculateProgressiveSteps(originalWidth, originalHeight, newWidth, newHeight);
+    
+    for (const step of steps) {
+      sharpInstance = sharpInstance
+        .resize(step.width, step.height, {
+          fit: 'fill',
+          withoutEnlargement: false,
+          kernel: 'lanczos3',
+          position: 'center'
+        })
+        .sharpen({
+          sigma: 1.4,
+          m1: 1.2,
+          m2: 0.9
+        })
+        .convolve({
+          width: 3,
+          height: 3,
+          kernel: [
+            0.95, 1.0, 0.95,
+            1.0, 1.1, 1.0,
+            0.95, 1.0, 0.95
+          ]
+        });
+    }
+
+    // Step 6: Advanced Detail Enhancement
     sharpInstance = sharpInstance
-      .resize(newWidth, newHeight, {
-        fit: 'fill',
-        withoutEnlargement: false,
-        kernel: 'lanczos3', // High-quality algorithm for upscaling
-        position: 'center'
+      .convolve({
+        width: 5,
+        height: 5,
+        kernel: [
+          0.04, 0.08, 0.12, 0.08, 0.04,
+          0.08, 0.16, 0.20, 0.16, 0.08,
+          0.12, 0.20, 0.24, 0.20, 0.12,
+          0.08, 0.16, 0.20, 0.16, 0.08,
+          0.04, 0.08, 0.12, 0.08, 0.04
+        ]
+      })
+      .modulate({
+        brightness: 1.06,
+        saturation: 1.08
+      })
+      .convolve({
+        width: 3,
+        height: 3,
+        kernel: [
+          0, -1.0, 0,
+          -1.0, 5.0, -1.0,
+          0, -1.0, 0
+        ]
       });
 
-    // Step 5: Post-Upscaling Enhancement
-    // Apply final enhancements after upscaling
+    // Step 7: Final Enhancement and Quality Optimization
     sharpInstance = sharpInstance
-      // Apply adaptive sharpening based on scale factor
       .sharpen({
-        sigma: scale > 3 ? 0.7 : scale > 2 ? 0.5 : 0.3,
-        m1: scale > 3 ? 0.7 : scale > 2 ? 0.5 : 0.3,
-        m2: scale > 3 ? 0.8 : scale > 2 ? 0.9 : 1.0
+        sigma: scale > 3 ? 1.8 : scale > 2 ? 1.4 : 1.2,
+        m1: scale > 3 ? 1.4 : scale > 2 ? 1.2 : 1.0,
+        m2: scale > 3 ? 1.0 : scale > 2 ? 1.1 : 1.2
+      })
+      .convolve({
+        width: 3,
+        height: 3,
+        kernel: [
+          0.92, 1.0, 0.92,
+          1.0, 1.2, 1.0,
+          0.92, 1.0, 0.92
+        ]
       });
 
-    // Step 6: Format-specific processing with optimal settings
+    // Step 8: Format-specific processing with enhanced settings
     if (format === 'jpeg' || format === 'jpg') {
       sharpInstance = sharpInstance.jpeg({ 
-        quality: qualityValue,
-        mozjpeg: true, // Use mozjpeg for better compression
-        chromaSubsampling: '4:4:4', // Better color quality
-        optimizeCoding: true, // Optimize Huffman coding
-        trellisQuantisation: true // Better compression
-      });
-    } else if (format === 'png') {
-      sharpInstance = sharpInstance.png({ 
-        quality: qualityValue,
-        compressionLevel: 9, // Maximum compression
-        palette: false, // Don't use palette mode
-        effort: 10 // Maximum effort for compression
-      });
-    } else if (format === 'webp') {
-      sharpInstance = sharpInstance.webp({ 
-        quality: qualityValue,
-        effort: 6, // Higher effort for better compression
-        lossless: false, // Use lossy compression for better file size
-        nearLossless: qualityValue > 85 // Use near-lossless for high quality
-      });
-    } else {
-      // Default to high-quality JPEG for other formats
-      sharpInstance = sharpInstance.jpeg({ 
-        quality: qualityValue,
+        quality: Math.min(qualityValue + 5, 100),
         mozjpeg: true,
         chromaSubsampling: '4:4:4',
         optimizeCoding: true,
-        trellisQuantisation: true
+        trellisQuantisation: true,
+        overshootDeringing: true
+      });
+    } else if (format === 'png') {
+      sharpInstance = sharpInstance.png({ 
+        quality: Math.min(qualityValue + 5, 100),
+        compressionLevel: 8,
+        palette: false,
+        effort: 10
+      });
+    } else if (format === 'webp') {
+      sharpInstance = sharpInstance.webp({ 
+        quality: Math.min(qualityValue + 5, 100),
+        effort: 6,
+        lossless: qualityValue > 80,
+        nearLossless: true
+      });
+    } else {
+      sharpInstance = sharpInstance.jpeg({ 
+        quality: Math.min(qualityValue + 5, 100),
+        mozjpeg: true,
+        chromaSubsampling: '4:4:4',
+        optimizeCoding: true,
+        trellisQuantisation: true,
+        overshootDeringing: true
       });
     }
 
@@ -238,4 +323,46 @@ async function analyzeBlur(sharpInstance: sharp.Sharp): Promise<{ isBlurry: bool
     // Default to not blurry if analysis fails
     return { isBlurry: false, blurType: 'none' };
   }
+}
+
+// Helper function to calculate progressive upscaling steps
+function calculateProgressiveSteps(
+  originalWidth: number, 
+  originalHeight: number, 
+  targetWidth: number, 
+  targetHeight: number
+): Array<{ width: number, height: number }> {
+  const steps: Array<{ width: number, height: number }> = [];
+  
+  // Calculate the total scale factor
+  const scaleFactor = targetWidth / originalWidth;
+  
+  // For small scale factors (1.5x or less), just do one step
+  if (scaleFactor <= 1.5) {
+    steps.push({ width: targetWidth, height: targetHeight });
+    return steps;
+  }
+  
+  // For medium scale factors (2x-3x), use 2 steps
+  if (scaleFactor <= 3) {
+    const midWidth = Math.round(originalWidth * 1.5);
+    const midHeight = Math.round(originalHeight * 1.5);
+    
+    steps.push({ width: midWidth, height: midHeight });
+    steps.push({ width: targetWidth, height: targetHeight });
+    return steps;
+  }
+  
+  // For large scale factors (3x+), use 3 steps
+  const step1Width = Math.round(originalWidth * 1.5);
+  const step1Height = Math.round(originalHeight * 1.5);
+  
+  const step2Width = Math.round(step1Width * 1.5);
+  const step2Height = Math.round(step1Height * 1.5);
+  
+  steps.push({ width: step1Width, height: step1Height });
+  steps.push({ width: step2Width, height: step2Height });
+  steps.push({ width: targetWidth, height: targetHeight });
+  
+  return steps;
 } 

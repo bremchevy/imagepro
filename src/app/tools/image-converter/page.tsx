@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sliders, RefreshCw, Download, History, Image as ImageIcon } from "lucide-react";
-import { useState, useRef } from "react";
+import { Sliders, RefreshCw, Download, History, Image as ImageIcon, Settings, ChevronDown } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -15,7 +15,10 @@ export default function ImageConverterPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [outputFormat, setOutputFormat] = useState("png");
   const [quality, setQuality] = useState("high");
+  const [metadata, setMetadata] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isFormatDropdownOpen, setIsFormatDropdownOpen] = useState(false);
+  const formatDropdownRef = useRef<HTMLDivElement>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -49,6 +52,8 @@ export default function ImageConverterPage() {
     
     setIsProcessing(true);
     try {
+      console.log(`Processing image to format: ${outputFormat}`);
+      
       // Convert base64 to blob
       const response = await fetch(previewImage);
       const blob = await response.blob();
@@ -59,6 +64,8 @@ export default function ImageConverterPage() {
       formData.append('outputFormat', outputFormat);
       formData.append('quality', quality);
       
+      console.log(`Sending request to convert image to ${outputFormat}`);
+      
       // Call image conversion API
       const apiResponse = await fetch('/api/image-converter', {
         method: 'POST',
@@ -67,14 +74,22 @@ export default function ImageConverterPage() {
       
       if (!apiResponse.ok) {
         const errorData = await apiResponse.json();
+        console.error('API error:', errorData);
         throw new Error(errorData.error || 'Failed to convert image');
       }
       
       const result = await apiResponse.json();
+      console.log('Conversion successful:', result.metadata);
+      
       setProcessedImage(result.processedImage);
       
+      // Set metadata if available
+      if (result.metadata) {
+        setMetadata(result.metadata);
+      }
+      
       toast.success("Image converted successfully!", {
-        description: "Your image has been converted to the selected format.",
+        description: `Your image has been converted from ${result.metadata?.originalFormat?.toUpperCase() || 'unknown'} to ${outputFormat.toUpperCase()}.`,
       });
     } catch (error) {
       console.error('Error converting image:', error);
@@ -89,13 +104,37 @@ export default function ImageConverterPage() {
   const handleDownload = () => {
     if (!processedImage) return;
     
+    // Get the correct file extension
+    let fileExtension = outputFormat;
+    if (outputFormat === 'jpg') {
+      fileExtension = 'jpg';
+    } else if (outputFormat === 'jpeg') {
+      fileExtension = 'jpg';
+    } else if (outputFormat === 'heic') {
+      fileExtension = 'heic';
+    }
+    
     const link = document.createElement('a');
     link.href = processedImage;
-    link.download = `converted-${Date.now()}.${outputFormat}`;
+    link.download = `converted-${Date.now()}.${fileExtension}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
+
+  // Add click outside handler for the format dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (formatDropdownRef.current && !formatDropdownRef.current.contains(event.target as Node)) {
+        setIsFormatDropdownOpen(false);
+      }
+    }
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-50/50 to-white">
@@ -128,60 +167,54 @@ export default function ImageConverterPage() {
                   accept="image/*"
                   onChange={handleImageUpload}
                 />
-                {processedImage ? (
-                  <div className="relative w-full h-full">
+                {processedImage && (
+                  <div className="flex flex-col gap-4">
+                    <div className="relative w-full aspect-video rounded-lg overflow-hidden">
                     <Image
                       src={processedImage}
-                      alt="Converted Result"
-                      fill
-                      className="object-cover rounded-lg transition-all duration-300"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                      <Button
-                        variant="secondary"
-                        className="bg-white text-gray-900 hover:bg-white/90"
-                        onClick={handleDownload}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download Result
-                      </Button>
+                        alt="Processed image"
+                        fill
+                        className="object-contain"
+                      />
                     </div>
-                  </div>
-                ) : previewImage ? (
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={previewImage}
-                      alt="Preview"
-                      fill
-                      className="object-cover rounded-lg transition-all duration-300"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                    {isProcessing && (
-                      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-lg">
-                        <div className="text-center">
-                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center">
-                            <RefreshCw className="h-6 w-6 text-white animate-spin" />
+                    
+                    {metadata && (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h3 className="text-sm font-medium mb-2">Conversion Details</h3>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <span className="text-gray-500">Original Format:</span>
+                            <span className="ml-2 font-medium">{metadata.originalFormat?.toUpperCase()}</span>
                           </div>
-                          <p className="text-white text-sm font-medium">Converting your image...</p>
-                          <div className="mt-2 w-32 mx-auto">
-                            <Progress value={undefined} className="h-1 bg-white/20">
-                              <div className="h-full w-full bg-white/40 animate-pulse rounded-full" />
-                            </Progress>
+                          <div>
+                            <span className="text-gray-500">Output Format:</span>
+                            <span className="ml-2 font-medium">{metadata.outputFormat?.toUpperCase()}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Original Size:</span>
+                            <span className="ml-2 font-medium">{metadata.originalWidth} x {metadata.originalHeight}</span>
+                  </div>
+                          <div>
+                            <span className="text-gray-500">Processed Size:</span>
+                            <span className="ml-2 font-medium">{metadata.processedWidth} x {metadata.processedHeight}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">File Size:</span>
+                            <span className="ml-2 font-medium">{(metadata.processedSize || 0).toFixed(2)} KB</span>
                           </div>
                         </div>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                      <p className="text-white text-sm font-medium">Click to change image</p>
+                    
+                    <div className="flex justify-end">
+                      <Button
+                        onClick={handleDownload}
+                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </Button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <Upload className="mx-auto h-10 w-10 text-gray-400" />
-                    <p className="mt-3 text-sm text-gray-600 font-medium">
-                      Drag and drop your image here, or click to upload
-                    </p>
                   </div>
                 )}
               </Card>
@@ -206,20 +239,136 @@ export default function ImageConverterPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
-                      <Settings2 className="h-4 w-4 text-gray-500" />
+                      <Settings className="h-4 w-4 text-gray-500" />
                       <span className="text-xs font-medium text-gray-700">Output Format</span>
                     </div>
-                    <Select defaultValue={outputFormat} onValueChange={setOutputFormat}>
-                      <SelectTrigger className="h-7 w-[100px] text-xs">
-                        <SelectValue placeholder="PNG" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="png">PNG</SelectItem>
-                        <SelectItem value="jpg">JPG</SelectItem>
-                        <SelectItem value="jpeg">JPEG</SelectItem>
-                        <SelectItem value="webp">WebP</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="relative" ref={formatDropdownRef}>
+                      <button
+                        onClick={() => setIsFormatDropdownOpen(!isFormatDropdownOpen)}
+                        className="flex items-center justify-between h-7 w-[120px] text-xs px-2 py-1 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      >
+                        <span>{outputFormat.toUpperCase()}</span>
+                        <ChevronDown className="h-3 w-3 text-gray-500" />
+                      </button>
+                      {isFormatDropdownOpen && (
+                        <div className="absolute z-10 mt-1 w-[120px] bg-white border border-gray-300 rounded-md shadow-lg">
+                          <div className="py-1 max-h-[200px] overflow-y-auto">
+                            <button
+                              onClick={() => {
+                                setOutputFormat("png");
+                                setIsFormatDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3 py-1 text-xs hover:bg-gray-100 flex items-center justify-between ${
+                                outputFormat === "png" ? "bg-blue-50 text-blue-600 font-medium" : ""
+                              }`}
+                            >
+                              PNG
+                              {outputFormat === "png" && (
+                                <span className="text-blue-500">✓</span>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setOutputFormat("jpg");
+                                setIsFormatDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3 py-1 text-xs hover:bg-gray-100 flex items-center justify-between ${
+                                outputFormat === "jpg" ? "bg-blue-50 text-blue-600 font-medium" : ""
+                              }`}
+                            >
+                              JPG
+                              {outputFormat === "jpg" && (
+                                <span className="text-blue-500">✓</span>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setOutputFormat("jpeg");
+                                setIsFormatDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3 py-1 text-xs hover:bg-gray-100 flex items-center justify-between ${
+                                outputFormat === "jpeg" ? "bg-blue-50 text-blue-600 font-medium" : ""
+                              }`}
+                            >
+                              JPEG
+                              {outputFormat === "jpeg" && (
+                                <span className="text-blue-500">✓</span>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setOutputFormat("webp");
+                                setIsFormatDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3 py-1 text-xs hover:bg-gray-100 flex items-center justify-between ${
+                                outputFormat === "webp" ? "bg-blue-50 text-blue-600 font-medium" : ""
+                              }`}
+                            >
+                              WebP
+                              {outputFormat === "webp" && (
+                                <span className="text-blue-500">✓</span>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setOutputFormat("gif");
+                                setIsFormatDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3 py-1 text-xs hover:bg-gray-100 flex items-center justify-between ${
+                                outputFormat === "gif" ? "bg-blue-50 text-blue-600 font-medium" : ""
+                              }`}
+                            >
+                              GIF
+                              {outputFormat === "gif" && (
+                                <span className="text-blue-500">✓</span>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setOutputFormat("tiff");
+                                setIsFormatDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3 py-1 text-xs hover:bg-gray-100 flex items-center justify-between ${
+                                outputFormat === "tiff" ? "bg-blue-50 text-blue-600 font-medium" : ""
+                              }`}
+                            >
+                              TIFF
+                              {outputFormat === "tiff" && (
+                                <span className="text-blue-500">✓</span>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setOutputFormat("avif");
+                                setIsFormatDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3 py-1 text-xs hover:bg-gray-100 flex items-center justify-between ${
+                                outputFormat === "avif" ? "bg-blue-50 text-blue-600 font-medium" : ""
+                              }`}
+                            >
+                              AVIF
+                              {outputFormat === "avif" && (
+                                <span className="text-blue-500">✓</span>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setOutputFormat("heic");
+                                setIsFormatDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3 py-1 text-xs hover:bg-gray-100 flex items-center justify-between ${
+                                outputFormat === "heic" ? "bg-blue-50 text-blue-600 font-medium" : ""
+                              }`}
+                            >
+                              HEIC
+                              {outputFormat === "heic" && (
+                                <span className="text-blue-500">✓</span>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">

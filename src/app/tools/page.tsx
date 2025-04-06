@@ -36,7 +36,7 @@ const allTools = [
   {
     id: "image-converter",
     name: "Image Converter",
-    description: "Convert images between different formats (PNG, JPG, JPEG, WebP) with high quality preservation.",
+    description: "Convert images between different formats (PNG, JPG, JPEG, WebP, GIF, TIFF, AVIF, HEIC) with high quality preservation.",
     icon: <RefreshCw className="h-6 w-6" />,
     gradient: "from-green-500 to-emerald-500",
     bgGradient: "from-green-50 to-emerald-50",
@@ -45,7 +45,7 @@ const allTools = [
   {
     id: "image-upscaler",
     name: "Image Upscaler",
-    description: "Enhance image quality up to 4x with advanced AI. Ideal for enlarging photos while preserving details.",
+    description: "Enhance image quality up to 4x with advanced AI upscaling. Features intelligent detail preservation, noise reduction, and blur correction.",
     icon: <ZoomIn className="h-6 w-6" />,
     gradient: "from-purple-500 to-pink-500",
     bgGradient: "from-purple-50 to-pink-50",
@@ -113,6 +113,10 @@ export default function ToolsPage() {
   const FREE_TRIAL_LIMIT = 10;
   const WARNING_THRESHOLD = 7;
   const [backgroundState, setBackgroundState] = useState("original");
+  
+  // Add state for the comparison slider
+  const [comparisonPosition, setComparisonPosition] = useState(50);
+  const [showComparison, setShowComparison] = useState(false);
 
   // Show all tools but mark non-free ones as locked
   const tools = allTools.map(tool => ({
@@ -189,6 +193,13 @@ export default function ToolsPage() {
         formData.append('brightness', brightness);
         formData.append('contrast', contrast);
         formData.append('sharpness', sharpness);
+      } else if (selectedTool.id === "image-converter") {
+        // Get output format from the UI
+        const outputFormatElement = document.querySelector('[data-value="outputFormat"]') as HTMLSelectElement;
+        const outputFormat = outputFormatElement?.value || "png";
+        
+        console.log(`Converting image to format: ${outputFormat}`);
+        formData.append('outputFormat', outputFormat);
       }
       
       // Determine which API to call based on the selected tool
@@ -197,6 +208,8 @@ export default function ToolsPage() {
         apiEndpoint = '/api/image-upscaler';
       } else if (selectedTool.id === "image-enhancement") {
         apiEndpoint = '/api/image-enhancement';
+      } else if (selectedTool.id === "image-converter") {
+        apiEndpoint = '/api/image-converter';
       }
       
       // Call the appropriate API
@@ -215,6 +228,11 @@ export default function ToolsPage() {
       // Update processed image with the result
       setProcessedImage(result.processedImage);
       setEditCount(prev => prev + 1);
+      
+      // Enable comparison view when we have both images
+      if (previewImage && result.processedImage) {
+        setShowComparison(true);
+      }
       
       // Add to history
       if (user) {
@@ -260,17 +278,27 @@ export default function ToolsPage() {
   const handleDownload = () => {
     if (!processedImage) return;
     
+    // Get the output format from the UI
+    const outputFormatElement = document.querySelector('[data-value="outputFormat"]') as HTMLSelectElement;
+    const outputFormat = outputFormatElement?.value || "png";
+    
+    // Get the correct file extension
+    let fileExtension = outputFormat;
+    if (outputFormat === 'jpg') {
+      fileExtension = 'jpg';
+    } else if (outputFormat === 'jpeg') {
+      fileExtension = 'jpg';
+    } else if (outputFormat === 'heic') {
+      fileExtension = 'heic';
+    }
+    
     // Create a temporary link to download the image
     const link = document.createElement('a');
     link.href = processedImage;
-    link.download = `processed-${Date.now()}.png`;
+    link.download = `processed-${Date.now()}.${fileExtension}`;
     document.body.appendChild(link);
     link.click();
-    
-    // Clean up after a short delay to ensure the download starts
-    setTimeout(() => {
-      document.body.removeChild(link);
-    }, 100);
+    document.body.removeChild(link);
   };
 
   const handleHistoryDownload = (imageUrl: string) => {
@@ -282,7 +310,7 @@ export default function ToolsPage() {
     
     // Clean up after a short delay to ensure the download starts
     setTimeout(() => {
-      document.body.removeChild(link);
+    document.body.removeChild(link);
     }, 100);
   };
 
@@ -334,6 +362,69 @@ export default function ToolsPage() {
     const newImageUrl = canvas.toDataURL('image/png');
     setProcessedImage(newImageUrl);
   };
+
+  // Add this function to handle the slider interaction
+  const handleSliderMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!showComparison) return;
+    
+    const container = e.currentTarget.parentElement;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const position = ((e.clientX - rect.left) / rect.width) * 100;
+    
+    // Clamp the position between 0 and 100
+    const clampedPosition = Math.max(0, Math.min(100, position));
+    setComparisonPosition(clampedPosition);
+  };
+  
+  const handleSliderMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    document.addEventListener('mousemove', handleSliderMove as any);
+    document.addEventListener('mouseup', handleSliderMouseUp);
+  };
+  
+  const handleSliderMouseUp = () => {
+    document.removeEventListener('mousemove', handleSliderMove as any);
+    document.removeEventListener('mouseup', handleSliderMouseUp);
+  };
+  
+  // Add touch event handlers for mobile responsiveness
+  const handleSliderTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!showComparison) return;
+    
+    const container = e.currentTarget.parentElement;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const touch = e.touches[0];
+    const position = ((touch.clientX - rect.left) / rect.width) * 100;
+    
+    // Clamp the position between 0 and 100
+    const clampedPosition = Math.max(0, Math.min(100, position));
+    setComparisonPosition(clampedPosition);
+  };
+  
+  const handleSliderTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    document.addEventListener('touchmove', handleSliderTouchMove as any, { passive: false });
+    document.addEventListener('touchend', handleSliderTouchEnd);
+  };
+  
+  const handleSliderTouchEnd = () => {
+    document.removeEventListener('touchmove', handleSliderTouchMove as any);
+    document.removeEventListener('touchend', handleSliderTouchEnd);
+  };
+  
+  // Clean up event listeners when component unmounts
+  useEffect(() => {
+    return () => {
+      document.removeEventListener('mousemove', handleSliderMove as any);
+      document.removeEventListener('mouseup', handleSliderMouseUp);
+      document.removeEventListener('touchmove', handleSliderTouchMove as any);
+      document.removeEventListener('touchend', handleSliderTouchEnd);
+    };
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-50/50 to-white">
@@ -425,10 +516,22 @@ export default function ToolsPage() {
             {/* Left Side - Preview Area */}
             <div className="relative min-h-[180px] sm:min-h-[200px] lg:min-h-[300px]">
               <Card 
-                className="h-full flex items-center justify-center border-2 border-dashed border-gray-200 hover:border-primary/50 transition-all duration-300 cursor-pointer bg-white shadow-sm hover:shadow-md"
-                onClick={() => fileInputRef.current?.click()}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
+                className={`h-full flex items-center justify-center border-2 border-dashed border-gray-200 hover:border-primary/50 transition-all duration-300 ${showComparison ? 'cursor-default' : 'cursor-pointer'} bg-white shadow-sm hover:shadow-md`}
+                onClick={(e) => {
+                  if (!showComparison) {
+                    fileInputRef.current?.click();
+                  }
+                }}
+                onDrop={(e) => {
+                  if (!showComparison) {
+                    handleDrop(e);
+                  }
+                }}
+                onDragOver={(e) => {
+                  if (!showComparison) {
+                    handleDragOver(e);
+                  }
+                }}
               >
                 <input
                   type="file"
@@ -450,31 +553,35 @@ export default function ToolsPage() {
                       className="object-cover rounded-lg transition-all duration-300"
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 rounded-lg">
-                      <Button
-                        variant="secondary"
-                        className="bg-white text-gray-900 hover:bg-white/90"
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent event bubbling
-                          handleDownload();
-                        }}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download Result
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        className="bg-white text-gray-900 hover:bg-white/90"
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent event bubbling
-                          setProcessedImage(null);
-                          setPreviewImage(null);
-                        }}
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload New Image
-                      </Button>
-                    </div>
+                    {/* Only show action buttons when not in comparison mode */}
+                    {!showComparison && (
+                      <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 rounded-lg">
+                        <Button
+                          variant="secondary"
+                          className="bg-white text-gray-900 hover:bg-white/90"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent event bubbling
+                            handleDownload();
+                          }}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download Result
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          className="bg-white text-gray-900 hover:bg-white/90"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent event bubbling
+                            setProcessedImage(null);
+                            setPreviewImage(null);
+                            setShowComparison(false);
+                          }}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload New Image
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ) : previewImage ? (
                   <div className="relative w-full h-full">
@@ -514,6 +621,59 @@ export default function ToolsPage() {
                 )}
               </Card>
 
+              {/* Comparison Slider - Only show when we have both images */}
+              {showComparison && previewImage && processedImage && (
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="relative w-full h-full">
+                    {/* Original Image (Left side) */}
+                    <div className="absolute inset-0 overflow-hidden rounded-lg">
+                      <div className="absolute inset-0" style={{ width: `${comparisonPosition}%` }}>
+                        <Image
+                          src={previewImage}
+                          alt="Original"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Processed Image (Right side) */}
+                    <div className="absolute inset-0 overflow-hidden rounded-lg">
+                      <div 
+                        className="absolute inset-0" 
+                        style={{ 
+                          width: `${100 - comparisonPosition}%`,
+                          left: `${comparisonPosition}%`
+                        }}
+                      >
+                        <Image
+                          src={processedImage}
+                          alt="Processed"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Slider Control */}
+                    <div 
+                      className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize pointer-events-auto"
+                      style={{ left: `${comparisonPosition}%` }}
+                    >
+                      <div 
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center"
+                        onMouseDown={handleSliderMouseDown}
+                        onTouchStart={handleSliderTouchStart}
+                      >
+                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                          <div className="w-4 h-4 rounded-full bg-white" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Processing Indicator */}
               {isProcessing && (
                 <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white/90 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg">
@@ -521,6 +681,23 @@ export default function ToolsPage() {
                     <div className="h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
                     <span className="text-[10px] sm:text-xs text-gray-600 font-medium">Processing...</span>
                   </div>
+                </div>
+              )}
+
+              {/* Comparison Toggle Button - Only show when we have both images */}
+              {processedImage && previewImage && (
+                <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={`h-8 px-2 rounded-full shadow-sm ${showComparison ? 'bg-primary text-white' : 'bg-white/90 backdrop-blur-sm'}`}
+                    onClick={() => setShowComparison(!showComparison)}
+                  >
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded-full bg-gray-400" />
+                      <div className="w-3 h-3 rounded-full bg-primary" />
+                    </div>
+                  </Button>
                 </div>
               )}
 
@@ -727,20 +904,24 @@ export default function ToolsPage() {
 
                           {tool.id === "image-converter" && (
                             <>
-                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                              <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors" data-tool="image-converter">
                                 <div className="flex items-center gap-2">
                                   <Settings2 className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Output Format</span>
                                 </div>
-                                <Select defaultValue="png">
-                                  <SelectTrigger className="h-7 w-[100px] text-xs">
+                                <Select defaultValue="png" data-value="outputFormat">
+                                  <SelectTrigger className="h-7 w-[120px] text-xs">
                                     <SelectValue placeholder="PNG" />
                                   </SelectTrigger>
-                                  <SelectContent>
+                                  <SelectContent className="max-h-[300px]">
                                     <SelectItem value="png">PNG</SelectItem>
                                     <SelectItem value="jpg">JPG</SelectItem>
                                     <SelectItem value="jpeg">JPEG</SelectItem>
                                     <SelectItem value="webp">WebP</SelectItem>
+                                    <SelectItem value="gif">GIF</SelectItem>
+                                    <SelectItem value="tiff">TIFF</SelectItem>
+                                    <SelectItem value="avif">AVIF</SelectItem>
+                                    <SelectItem value="heic">HEIC</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -886,9 +1067,10 @@ export default function ToolsPage() {
                           {tool.id === "image-upscaler" && (
                             <div className="space-y-1.5">
                               <p className="text-xs text-gray-600">1. Upload your image (up to 10MB)</p>
-                              <p className="text-xs text-gray-600">2. Select your desired enlargement scale</p>
-                              <p className="text-xs text-gray-600">3. Choose quality settings</p>
-                              <p className="text-xs text-gray-600">4. Download your high-resolution image</p>
+                              <p className="text-xs text-gray-600">2. Choose scale factor (1.5x to 4x)</p>
+                              <p className="text-xs text-gray-600">3. Select quality level for optimal results</p>
+                              <p className="text-xs text-gray-600">4. AI will enhance details and reduce noise</p>
+                              <p className="text-xs text-gray-600">5. Download your high-resolution image</p>
                             </div>
                           )}
                           {tool.id === "image-enhancement" && (
