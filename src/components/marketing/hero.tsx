@@ -224,19 +224,19 @@ export function Hero() {
                   </motion.div>
                 </Link>
 
-                {!user && (
+              {!user && (
                   <Link href="/signup" className="w-full sm:w-auto">
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                       className="w-full"
-                    >
+                  >
                       <Button variant="outline" size="lg" className="w-full sm:w-auto text-base px-6 sm:px-8 py-5 sm:py-6 rounded-full border-primary/20 hover:bg-primary/5 backdrop-blur-sm">
-                        Try for Free
-                      </Button>
-                    </motion.div>
-                  </Link>
-                )}
+                      Try for Free
+                    </Button>
+                  </motion.div>
+                </Link>
+              )}
               </motion.div>
             </motion.div>
           </motion.div>
@@ -254,7 +254,7 @@ export function Hero() {
               transition={{ duration: 0.3 }}
             >
               {/* Image Preview or Upload Area */}
-              <div className="relative aspect-[4/3]">
+              <div className="relative h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px]">
                 {preview ? (
                   <div className="relative w-full h-full group">
                     <Image

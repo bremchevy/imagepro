@@ -1500,12 +1500,12 @@ export default function ToolsPage() {
               <Tabs defaultValue={tools[0].id} className="w-full" onValueChange={(value) => {
                 handleToolSelect(value);
               }}>
-                <TabsList className="w-full grid grid-cols-2 sm:flex sm:flex-wrap bg-white/80 backdrop-blur-sm p-1.5 rounded-xl shadow-sm border border-gray-100">
+                <TabsList className="w-full grid grid-cols-2 sm:flex sm:flex-wrap bg-white/80 backdrop-blur-sm p-2 sm:p-1.5 rounded-xl shadow-sm border border-gray-100 gap-2 sm:gap-0 mb-4 sm:mb-0">
                   {tools.map((tool) => (
                     <TabsTrigger
                       key={tool.id}
                       value={tool.id}
-                      className="flex-1 min-w-[80px] flex items-center justify-center px-2 py-1.5 rounded-lg data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-all duration-200 relative hover:bg-gray-50"
+                      className="flex-1 min-w-[80px] flex items-center justify-center px-2 py-2.5 sm:py-1.5 rounded-lg data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-all duration-200 relative hover:bg-gray-50"
                     >
                       <span className="text-[10px] sm:text-xs font-medium text-center">{tool.name}</span>
                       {tool.isLocked && (

@@ -40,20 +40,20 @@ export default function UserManagementPage() {
           {/* Main Content */}
           <div className="bg-background/50 backdrop-blur-sm rounded-2xl border shadow-lg p-6">
             <Tabs defaultValue="profile" className="space-y-8">
-              <TabsList className="grid w-full grid-cols-4 h-12 bg-muted/50 p-1 rounded-xl">
-                <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-0 h-auto sm:h-12 bg-muted/50 p-2 sm:p-1 rounded-xl">
+                <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm py-3 sm:py-0">
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </TabsTrigger>
-                <TabsTrigger value="security" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <TabsTrigger value="security" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm py-3 sm:py-0">
                   <Shield className="w-4 h-4 mr-2" />
                   Security
                 </TabsTrigger>
-                <TabsTrigger value="notifications" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <TabsTrigger value="notifications" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm py-3 sm:py-0">
                   <Bell className="w-4 h-4 mr-2" />
                   Notifications
                 </TabsTrigger>
-                <TabsTrigger value="preferences" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <TabsTrigger value="preferences" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm py-3 sm:py-0">
                   <Settings className="w-4 h-4 mr-2" />
                   Preferences
                 </TabsTrigger>
