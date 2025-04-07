@@ -36,18 +36,18 @@ const testimonials = [
 
 export function Testimonials() {
   return (
-    <section className="py-24 sm:py-32">
-      <div className="container">
-        <div className="mx-auto max-w-2xl lg:text-center">
+    <section className="py-16 sm:py-24 lg:py-32">
+      <div className="container px-4 sm:px-6">
+        <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-base font-semibold leading-7 text-primary">Testimonials</h2>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          <p className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-foreground lg:text-4xl">
             Loved by Professionals Worldwide
           </p>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">
+          <p className="mt-4 sm:mt-6 text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground">
             See what our users have to say about their experience with our AI-powered image processing tools.
           </p>
         </div>
-        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 grid-rows-1 gap-8 text-sm leading-6 sm:mt-20 sm:grid-cols-2 xl:mx-0 xl:max-w-none xl:grid-flow-col xl:grid-cols-3">
+        <div className="mx-auto mt-12 sm:mt-16 lg:mt-20 grid max-w-2xl grid-cols-1 gap-6 sm:gap-8 text-sm leading-6 sm:grid-cols-2 xl:mx-0 xl:max-w-none xl:grid-flow-col xl:grid-cols-3">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.author.name}
@@ -55,21 +55,21 @@ export function Testimonials() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <Card className="relative">
-                <CardContent className="p-8">
+              <Card className="relative h-full">
+                <CardContent className="p-6 sm:p-8">
                   <div className="flex items-center gap-x-4">
-                    <Avatar>
+                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                       <AvatarImage src={testimonial.author.image} alt={testimonial.author.name} />
-                      <AvatarFallback>{testimonial.author.initials}</AvatarFallback>
+                      <AvatarFallback className="text-sm sm:text-base">{testimonial.author.initials}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="font-semibold text-foreground">{testimonial.author.name}</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="font-semibold text-foreground text-sm sm:text-base">{testimonial.author.name}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground">
                         {testimonial.author.role}
                       </div>
                     </div>
                   </div>
-                  <p className="mt-6 text-muted-foreground">{testimonial.content}</p>
+                  <p className="mt-4 sm:mt-6 text-sm sm:text-base text-muted-foreground">{testimonial.content}</p>
                 </CardContent>
               </Card>
             </motion.div>

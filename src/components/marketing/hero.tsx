@@ -161,23 +161,23 @@ export function Hero() {
       {/* Subtle Grid Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
       
-      <div className="container relative">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="container relative px-4 sm:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Section - Content */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col gap-8"
+            className="flex flex-col gap-6 sm:gap-8 text-center lg:text-left"
           >
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className="flex flex-col gap-6"
+              className="flex flex-col gap-4 sm:gap-6"
             >
               <motion.h1 
-                className="text-4xl font-bold leading-tight tracking-tight text-foreground md:text-5xl lg:text-6xl lg:leading-[1.1]"
+                className="text-3xl sm:text-4xl font-bold leading-tight tracking-tight text-foreground md:text-5xl lg:text-6xl lg:leading-[1.1]"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
@@ -194,7 +194,7 @@ export function Hero() {
               </motion.h1>
               
               <motion.p 
-                className="text-lg text-muted-foreground max-w-xl leading-relaxed"
+                className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
@@ -206,42 +206,38 @@ export function Hero() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
+                className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
               >
-                <Link href="/tools">
+                <Link href="/tools" className="w-full sm:w-auto">
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    className="w-full"
                   >
-                    <Button size="lg" className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white text-base px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 group relative overflow-hidden">
+                    <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white text-base px-6 sm:px-8 py-5 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 group relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <span className="relative flex items-center">
+                      <span className="relative flex items-center justify-center">
                         Try Our Tools
                         <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                       </span>
                     </Button>
                   </motion.div>
                 </Link>
-              </motion.div>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-              className="flex flex-col sm:flex-row items-center gap-4"
-          >
-              {!user && (
-                <Link href="/signup">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button variant="outline" size="lg" className="text-base px-8 py-6 rounded-full border-primary/20 hover:bg-primary/5 backdrop-blur-sm">
-                      Try for Free
-                    </Button>
-                  </motion.div>
-                </Link>
-              )}
+                {!user && (
+                  <Link href="/signup" className="w-full sm:w-auto">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="w-full"
+                    >
+                      <Button variant="outline" size="lg" className="w-full sm:w-auto text-base px-6 sm:px-8 py-5 sm:py-6 rounded-full border-primary/20 hover:bg-primary/5 backdrop-blur-sm">
+                        Try for Free
+                      </Button>
+                    </motion.div>
+                  </Link>
+                )}
+              </motion.div>
             </motion.div>
           </motion.div>
 
@@ -250,10 +246,10 @@ export function Hero() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
-            className="relative"
+            className="relative mt-8 lg:mt-0 mb-12 sm:mb-16 lg:mb-0"
           >
             <motion.div 
-              className="relative rounded-2xl overflow-hidden shadow-2xl bg-white border border-gray-100"
+              className="relative rounded-2xl overflow-hidden shadow-2xl bg-white border border-gray-100 max-w-2xl mx-auto"
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.3 }}
             >
@@ -380,26 +376,27 @@ export function Hero() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.2 }}
+                        className="px-4 sm:px-8"
                       >
-                        <h3 className="text-2xl font-semibold text-foreground mb-3 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                        <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-2 sm:mb-3 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                           Quick Image Upscale
                         </h3>
-                        <p className="text-base text-muted-foreground max-w-sm mx-auto mb-6">
+                        <p className="text-sm sm:text-base text-muted-foreground max-w-sm mx-auto mb-4 sm:mb-6">
                           Upload your image and watch it transform into a high-resolution masterpiece
                         </p>
                         
                         {/* Upload CTA */}
                         <motion.div
-                          className="relative inline-block"
+                          className="relative inline-block w-full sm:w-auto"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
                           <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 rounded-full blur-lg opacity-50" />
                           <Button 
                             size="lg" 
-                            className="relative bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 group"
+                            className="w-full sm:w-auto relative bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white px-6 sm:px-8 py-5 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 group"
                           >
-                            <span className="flex items-center">
+                            <span className="flex items-center justify-center">
                               <Upload className="mr-2 h-5 w-5" />
                               Upload Image
                             </span>
@@ -408,7 +405,7 @@ export function Hero() {
 
                         {/* Features List */}
                         <motion.div 
-                          className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground"
+                          className="mt-6 sm:mt-8 flex flex-wrap justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ duration: 0.8, delay: 0.4 }}
