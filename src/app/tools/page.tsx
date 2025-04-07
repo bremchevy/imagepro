@@ -553,8 +553,41 @@ export default function ToolsPage() {
         }
       } else if (value === 'image-conversion') {
         // ... rest of the existing code ...
-      } else if (value === 'image-upscaling') {
-        // ... rest of the existing code ...
+      } else if (value === 'image-upscaler') {
+        // Get the scale factor from the UI
+        const scaleFactorElement = document.querySelector('[data-tool="image-upscaler"][data-value="scaleFactor"]') as HTMLSelectElement;
+        const scaleFactor = scaleFactorElement?.value || "2x";
+        
+        // Convert base64 to blob
+        const response = await fetch(selectedImage);
+        const blob = await response.blob();
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('image', blob, 'image.png');
+        formData.append('scaleFactor', scaleFactor);
+        formData.append('quality', 'high');
+        
+        // Call the API
+        const apiResponse = await fetch('/api/image-upscaler', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!apiResponse.ok) {
+          const errorData = await apiResponse.json();
+          throw new Error(errorData.error || 'Failed to process image');
+        }
+        
+        const result = await apiResponse.json();
+        
+        // Update processed image
+        setProcessedImage(result.processedImage);
+        
+        // Show success notification
+        toast.success("Image Upscaled", {
+          description: "Your image has been successfully upscaled.",
+        });
       } else if (value === 'image-enhancement') {
         // ... rest of the existing code ...
       }
