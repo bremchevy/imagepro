@@ -452,7 +452,7 @@ export default function ToolsPage() {
 
   const handleProcessImage = async (value: string) => {
     if (!selectedImage || !value) return;
-
+    
     setIsProcessing(true);
     setError(null);
     setProcessedImage(null);
@@ -465,7 +465,7 @@ export default function ToolsPage() {
             throw new Error('Remove.bg API key is missing. Using fallback method.');
           }
 
-          // Convert base64 to blob
+        // Convert base64 to blob
           const base64Data = selectedImage.split(',')[1];
           const byteCharacters = atob(base64Data);
           const byteArrays = [];
@@ -488,7 +488,7 @@ export default function ToolsPage() {
           const formData = new FormData();
           formData.append('image_file', file);
           formData.append('size', 'auto');
-
+          
           const response = await fetch('https://api.remove.bg/v1.0/removebg', {
             method: 'POST',
             headers: {
@@ -496,7 +496,7 @@ export default function ToolsPage() {
             },
             body: formData,
           });
-
+          
           if (!response.ok) {
             const errorData = await response.json();
             if (response.status === 402 && errorData.errors?.[0]?.code === 'insufficient_credits') {
@@ -519,17 +519,17 @@ export default function ToolsPage() {
           await new Promise<void>((resolve) => {
             img.onload = () => resolve();
           });
-
+          
           const canvas = document.createElement('canvas');
           canvas.width = img.width;
           canvas.height = img.height;
           const ctx = canvas.getContext('2d');
           if (!ctx) throw new Error('Could not get canvas context');
-
+          
           ctx.drawImage(img, 0, 0);
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const data = imageData.data;
-
+          
           // Simple background removal based on color similarity
           for (let i = 0; i < data.length; i += 4) {
             const r = data[i];
@@ -541,7 +541,7 @@ export default function ToolsPage() {
               data[i + 3] = 0; // Set alpha to 0 (transparent)
             }
           }
-
+          
           ctx.putImageData(imageData, 0, 0);
           const url = canvas.toDataURL('image/png');
           setProcessedImage(url);
@@ -776,30 +776,6 @@ export default function ToolsPage() {
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-50/50 to-white">
       <main className="flex-1">
         <div className="container min-h-[calc(100vh-8rem)] py-4 sm:py-8">
-          {/* Free Trial Counter */}
-          <div className="absolute top-4 right-4 md:top-4 md:right-20 z-10">
-            <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-1">
-                <Crown className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-gray-900">
-                  {editCount}/{FREE_TRIAL_LIMIT} free trials
-                </span>
-              </div>
-              {editCount >= WARNING_THRESHOLD && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-yellow-500 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>You're approaching your daily limit. Upgrade to Pro for unlimited access.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
-          </div>
-
           {/* Header */}
           <div className="text-center mb-4 sm:mb-6">
             <motion.div
@@ -1217,7 +1193,7 @@ export default function ToolsPage() {
                     <TabsTrigger
                       key={tool.id}
                       value={tool.id}
-                      className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm py-3 sm:py-0"
+                      className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:py-2 sm:data-[state=active]:py-1.5 transition-all"
                     >
                       <span className="text-[10px] sm:text-xs font-medium text-center">{tool.name}</span>
                       {tool.isLocked && (
