@@ -29,4 +29,9 @@ export interface User {
     autoSave?: boolean;
     notifications?: boolean;
   };
+  user_metadata?: {
+    avatar_url?: string;
+    [key: string]: any;
+  };
+  created_at?: string;
 } 

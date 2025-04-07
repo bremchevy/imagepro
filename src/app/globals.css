@@ -63,53 +63,27 @@
 /* Typography */
 @layer base {
   h1 {
-    font-size: 2.25rem;
-    line-height: 1.2;
-    font-weight: 700;
-    letter-spacing: -0.025em;
-  }
-  @media (min-width: 640px) {
-    h1 {
-      font-size: 3rem;
-    }
+    @apply text-4xl font-bold tracking-tight lg:text-5xl;
   }
 
   h2 {
-    font-size: 1.875rem;
-    line-height: 1.2;
-    font-weight: 700;
-    letter-spacing: -0.025em;
-  }
-  @media (min-width: 640px) {
-    h2 {
-      font-size: 2.25rem;
-    }
+    @apply text-3xl font-semibold tracking-tight;
   }
 
   h3 {
-    font-size: 1.5rem;
-    line-height: 1.2;
-    font-weight: 600;
-    letter-spacing: -0.025em;
+    @apply text-2xl font-semibold tracking-tight;
   }
 
   h4 {
-    font-size: 1.25rem;
-    line-height: 1.2;
-    font-weight: 600;
-    letter-spacing: -0.025em;
+    @apply text-xl font-semibold tracking-tight;
   }
 
   p {
-    font-size: 1rem;
-    line-height: 1.75;
-    color: hsl(var(--foreground) / 0.8);
+    @apply leading-7 [&:not(:first-child)]:mt-6;
   }
 
   small {
-    font-size: 0.875rem;
-    line-height: 1.5;
-    color: hsl(var(--foreground) / 0.8);
+    @apply text-sm font-medium leading-none;
   }
 }
 
@@ -120,179 +94,169 @@
   }
 
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    @apply inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
   }
 
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    @apply inline-flex items-center justify-center rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground shadow-sm transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
   }
 
   .input {
-    @apply block w-full rounded-md border-0 px-3 py-2 text-foreground shadow-sm outline-none ring-1 ring-inset ring-input transition-all duration-200 placeholder:text-foreground/50 hover:ring-primary/50 focus:ring-2 focus:ring-primary;
+    @apply flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .card {
-    @apply relative rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 hover:shadow-md;
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
   }
 
   .section-title {
-    @apply text-3xl font-bold tracking-tight text-foreground sm:text-4xl;
+    @apply text-2xl font-bold tracking-tight text-foreground;
   }
 
   .section-description {
-    @apply mt-6 text-lg leading-8 text-muted-foreground;
+    @apply text-muted-foreground;
   }
 
   .hover-primary {
-    @apply hover:bg-primary/10 hover:text-primary transition-colors duration-200;
+    @apply transition-colors hover:text-primary;
   }
-  
+
   .nav-link {
-    @apply text-sm font-medium transition-all duration-200 rounded-full px-3 py-2 text-foreground/80 hover:text-foreground hover:bg-primary/10;
+    @apply text-sm font-medium text-muted-foreground transition-colors hover:text-primary;
   }
-  
+
   .nav-link-active {
-    @apply bg-primary/10 text-primary;
+    @apply text-primary;
   }
 }
 
 /* Spacing */
 @layer utilities {
   .space-xs {
-    margin-top: 0.25rem;
+    @apply space-y-2;
   }
+
   .space-sm {
-    margin-top: 0.5rem;
+    @apply space-y-4;
   }
+
   .space-md {
-    margin-top: 1rem;
+    @apply space-y-6;
   }
+
   .space-lg {
-    margin-top: 1.5rem;
+    @apply space-y-8;
   }
+
   .space-xl {
-    margin-top: 2rem;
+    @apply space-y-12;
   }
 }
 
-/* Animations and Transitions */
+/* Transitions */
 @layer utilities {
   .transition-base {
-    transition: all 200ms ease-in-out;
+    @apply transition-all duration-200 ease-in-out;
   }
 
   .hover-scale {
-    transition: all 200ms ease-in-out;
+    @apply transition-transform duration-200 ease-in-out;
   }
+
   .hover-scale:hover {
-    scale: 1.02;
+    @apply scale-105;
   }
 
   .hover-lift {
-    transition: all 200ms ease-in-out;
+    @apply transition-transform duration-200 ease-in-out;
   }
+
   .hover-lift:hover {
-    transform: translateY(-0.25rem);
+    @apply -translate-y-1;
   }
 
   .click-scale {
-    transition: all 200ms ease-in-out;
-  }
-  .click-scale:active {
-    scale: 0.98;
+    @apply transition-transform duration-100 ease-in-out;
   }
 
+  .click-scale:active {
+    @apply scale-95;
+  }
+}
+
+/* Animations */
+@layer utilities {
   .animate-fade-in {
-    animation: fade-in 0.5s ease-out forwards;
+    @apply animate-in fade-in duration-300;
   }
 
   .animate-slide-in {
-    animation: slide-in 250ms ease-in-out;
+    @apply animate-in slide-in-from-bottom-4 duration-300;
   }
 
   .animate-scale-in {
-    animation: scale-in 250ms ease-in-out;
+    @apply animate-in zoom-in duration-300;
   }
 
   .animate-shimmer {
-    animation: shimmer 2s infinite;
+    @apply relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent;
   }
 }
 
 /* Loading States */
 @layer utilities {
   .loading-skeleton {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    background-color: hsl(var(--foreground) / 0.1);
-    border-radius: 0.25rem;
+    @apply animate-pulse rounded-md bg-muted;
   }
 
   .loading-spinner {
-    animation: spin 1s linear infinite;
-    border-radius: 9999px;
-    border: 2px solid hsl(var(--foreground) / 0.2);
-    border-top-color: hsl(var(--primary));
-    height: 1.25rem;
-    width: 1.25rem;
+    @apply h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent;
   }
+}
 
+/* Progress Bar */
+@layer utilities {
   .progress-bar {
-    height: 0.25rem;
-    background-color: hsl(var(--primary) / 0.2);
-    border-radius: 9999px;
-    overflow: hidden;
+    @apply h-2 w-full overflow-hidden rounded-full bg-secondary;
   }
 
   .progress-bar-value {
-    height: 100%;
-    background-color: hsl(var(--primary));
-    border-radius: 9999px;
-    transition: all 200ms ease-in-out;
+    @apply h-full w-full flex-1 bg-primary transition-all;
   }
 }
 
-/* Grid System */
+/* Grid Layouts */
 @layer utilities {
   .grid-12 {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 1.5rem;
+    @apply grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
   }
-  
+
   .grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.5rem;
+    @apply grid grid-cols-1 gap-6 sm:grid-cols-2;
   }
-  
+
   .grid-3 {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.5rem;
+    @apply grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3;
   }
-  
+
   .grid-4 {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1.5rem;
+    @apply grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
   }
 }
 
-/* Enhanced Keyframes */
+/* Animations */
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
 @keyframes slide-in {
   from {
-    transform: translateY(10px);
+    transform: translateY(1rem);
     opacity: 0;
   }
   to {
@@ -321,28 +285,26 @@
   }
 }
 
-/* Custom Scrollbar */
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 0.5rem;
+  @apply h-2 w-2;
 }
 
 ::-webkit-scrollbar-track {
-  background-color: hsl(var(--background));
+  @apply bg-secondary;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--border));
-  border-radius: 9999px;
-  transition: background-color 200ms ease-in-out;
-}
-::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--primary) / 0.5);
+  @apply rounded-full bg-primary/50 hover:bg-primary;
 }
 
-@layer utilities {
-  .bg-grid-pattern {
-    background-image: linear-gradient(to right, rgb(var(--foreground) / 0.1) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(var(--foreground) / 0.1) 1px, transparent 1px);
-    background-size: 24px 24px;
-  }
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary;
+}
+
+/* Background Patterns */
+.bg-grid-pattern {
+  background-image: linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px);
+  background-size: 24px 24px;
 }

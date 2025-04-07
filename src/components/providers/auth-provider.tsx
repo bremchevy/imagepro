@@ -8,13 +8,14 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ data: any; error: any }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   updateUserEmail: (newEmail: string) => Promise<void>;
   signInWithTwitter: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   resendVerificationEmail: (email: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -81,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
+  const signUp = async (email: string, password: string, name: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -92,6 +93,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            full_name: name,
+          },
         },
       });
 
@@ -104,8 +108,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .insert([
             {
               id: authData.user.id,
-              first_name: firstName,
-              last_name: lastName,
+              first_name: name.split(' ')[0],
+              last_name: name.split(' ')[1] || '',
               email: email,
             },
           ]);
@@ -188,6 +192,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/update-password`,
+    });
+    if (error) throw error;
+  };
+
   const value = {
     user,
     loading,
@@ -199,6 +210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithTwitter,
     signInWithGoogle,
     resendVerificationEmail,
+    resetPassword,
   };
 
   if (loading) {

@@ -25,6 +25,8 @@ interface SignUpDialogProps {
 export function SignUpDialog({ open, onOpenChange }: SignUpDialogProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [isVerificationSent, setIsVerificationSent] = useState(false)
@@ -36,7 +38,7 @@ export function SignUpDialog({ open, onOpenChange }: SignUpDialogProps) {
     setLoading(true)
 
     try {
-      await signUp(email, password)
+      await signUp(email, password, firstName, lastName)
       setIsVerificationSent(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -50,7 +52,7 @@ export function SignUpDialog({ open, onOpenChange }: SignUpDialogProps) {
     setLoading(true)
 
     try {
-      await signUp(email, password)
+      await signUp(email, password, firstName, lastName)
       setError('A new verification email has been sent.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -128,24 +130,42 @@ export function SignUpDialog({ open, onOpenChange }: SignUpDialogProps) {
         <DialogHeader className="space-y-4">
           <DialogTitle className="text-2xl font-bold">Create an account</DialogTitle>
           <DialogDescription className="text-base">
-            Enter your email below to create your account
+            Enter your information to create a new account
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 py-6">
-          <div className="grid gap-4">
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="grid gap-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="John"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Doe"
+                  required
+                />
+              </div>
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                placeholder="name@example.com"
                 type="email"
-                autoCapitalize="none"
-                autoComplete="email"
-                autoCorrect="off"
-                disabled={loading}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12"
+                placeholder="name@example.com"
+                required
               />
             </div>
             <div className="grid gap-2">
@@ -153,36 +173,30 @@ export function SignUpDialog({ open, onOpenChange }: SignUpDialogProps) {
               <Input
                 id="password"
                 type="password"
-                autoCapitalize="none"
-                autoComplete="new-password"
-                autoCorrect="off"
-                disabled={loading}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12"
+                required
               />
             </div>
-          </div>
-          {error && (
-            <div className="text-sm text-red-500">
-              {error}
-            </div>
-          )}
-          <Button 
-            disabled={loading} 
-            className="h-12"
-            onClick={handleSubmit}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
-              </>
-            ) : (
-              "Create account"
+            {error && (
+              <div className="text-sm text-red-500">
+                {error}
+              </div>
             )}
-          </Button>
-        </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                'Create account'
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
         <div className="mt-6 text-center text-sm">
           Already have an account?{" "}
           <Button 

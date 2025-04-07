@@ -29,12 +29,19 @@ export class ProfileService {
   static async createDefaultProfile(userId: string): Promise<UserProfile> {
     const defaultProfile: UserProfile = {
       id: userId,
+      email: '',
       full_name: 'New User',
-      location: null,
-      bio: null,
-      avatar_url: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      location: undefined,
+      bio: undefined,
+      avatar_url: undefined,
+      email_notifications: true,
+      marketing_emails: false,
+      security_alerts: true,
+      updates_and_news: true,
+      two_factor_enabled: false,
+      account_status: 'active',
+      created_at: new Date(),
+      updated_at: new Date()
     };
 
     try {

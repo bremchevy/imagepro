@@ -26,6 +26,8 @@ interface AuthDialogProps {
 export function AuthDialog({ open, onOpenChange, defaultView = 'signup' }: AuthDialogProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [isVerificationSent, setIsVerificationSent] = useState(false)
@@ -47,7 +49,7 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'signup' }: AuthD
 
     try {
       if (view === 'signup') {
-        await signUp(email, password)
+        await signUp(email, password, firstName, lastName)
         onOpenChange(false)
         router.push('/dashboard')
       } else {
@@ -67,7 +69,7 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'signup' }: AuthD
     setLoading(true)
 
     try {
-      await signUp(email, password)
+      await signUp(email, password, firstName, lastName)
       setError('A new verification email has been sent.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -168,33 +170,54 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'signup' }: AuthD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] min-h-[600px]">
-        <DialogHeader className="space-y-4">
-          <DialogTitle className="text-2xl font-bold">
-            {view === 'signup' ? 'Create an account' : 'Welcome back'}
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>
+            {view === 'signin' && 'Sign in to your account'}
+            {view === 'signup' && 'Create an account'}
+            {view === 'forgot-password' && 'Reset your password'}
           </DialogTitle>
-          <DialogDescription className="text-base">
-            {view === 'signup' 
-              ? 'Enter your email below to create your account'
-              : 'Enter your email and password to sign in'
-            }
+          <DialogDescription>
+            {view === 'signin' && 'Enter your email and password to sign in to your account'}
+            {view === 'signup' && 'Enter your information to create a new account'}
+            {view === 'forgot-password' && 'Enter your email address and we\'ll send you a link to reset your password'}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 py-6">
-          <div className="grid gap-4">
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            {view === 'signup' && (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input
+                    id="firstName"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="John"
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Doe"
+                    required
+                  />
+                </div>
+              </div>
+            )}
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                placeholder="name@example.com"
                 type="email"
-                autoCapitalize="none"
-                autoComplete="email"
-                autoCorrect="off"
-                disabled={loading}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12"
+                placeholder="name@example.com"
+                required
               />
             </div>
             <div className="grid gap-2">
@@ -202,73 +225,93 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'signup' }: AuthD
               <Input
                 id="password"
                 type="password"
-                autoCapitalize="none"
-                autoComplete={view === 'signup' ? 'new-password' : 'current-password'}
-                autoCorrect="off"
-                disabled={loading}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12"
+                required
               />
-              {view === 'signin' && (
-                <Button
-                  variant="link"
-                  className="justify-end h-auto p-0 text-sm text-primary hover:text-primary/90"
-                  onClick={() => {
-                    setView('forgot-password')
-                    setError(null)
-                  }}
-                >
-                  Forgot password?
-                </Button>
-              )}
             </div>
-          </div>
-          {error && (
-            <div className="text-sm text-red-500">
-              {error}
-            </div>
-          )}
-          <Button 
-            disabled={loading} 
-            className="h-12"
-            onClick={handleSubmit}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {view === 'signup' ? 'Creating account...' : 'Signing in...'}
-              </>
-            ) : (
-              view === 'signup' ? 'Create account' : 'Sign in'
+            {error && (
+              <div className="text-sm text-red-500">
+                {error}
+              </div>
             )}
-          </Button>
-        </div>
-        <div className="mt-6 text-center text-sm">
-          {view === 'signup' ? (
-            <>
-              Already have an account?{" "}
-              <Button 
-                variant="link" 
-                className="text-primary hover:text-primary/90 h-auto p-0"
-                onClick={toggleView}
-              >
-                Sign in
-              </Button>
-            </>
-          ) : (
-            <>
-              Don't have an account?{" "}
-              <Button 
-                variant="link" 
-                className="text-primary hover:text-primary/90 h-auto p-0"
-                onClick={toggleView}
-              >
-                Sign up
-              </Button>
-            </>
-          )}
-        </div>
+          </div>
+          <DialogFooter>
+            {view === 'forgot-password' ? (
+              <div className="flex w-full flex-col gap-2">
+                <Button type="submit" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending reset link...
+                    </>
+                  ) : (
+                    'Send reset link'
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBack}
+                  className="w-full"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to sign in
+                </Button>
+              </div>
+            ) : (
+              <div className="flex w-full flex-col gap-2">
+                <Button type="submit" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {view === 'signin' ? 'Signing in...' : 'Creating account...'}
+                    </>
+                  ) : (
+                    view === 'signin' ? 'Sign in' : 'Create account'
+                  )}
+                </Button>
+                <div className="flex flex-col gap-2 text-center text-sm">
+                  {view === 'signin' ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="text-xs"
+                        onClick={handleForgotPassword}
+                      >
+                        Forgot your password?
+                      </Button>
+                      <div>
+                        Don't have an account?{' '}
+                        <Button
+                          type="button"
+                          variant="link"
+                          className="p-0 h-auto font-normal"
+                          onClick={toggleView}
+                        >
+                          Sign up
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      Already have an account?{' '}
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="p-0 h-auto font-normal"
+                        onClick={toggleView}
+                      >
+                        Sign in
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

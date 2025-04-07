@@ -58,14 +58,14 @@ export default function AccountPage() {
           <CardContent>
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20">
-                <AvatarImage src={user.user_metadata?.avatar_url} />
+                <AvatarImage src={user.avatar_url || user.user_metadata?.avatar_url} />
                 <AvatarFallback>
                   {user.email?.charAt(0).toUpperCase()}
                 </AvatarFallback>
           </Avatar>
           <div>
                 <h3 className="font-medium">{user.email}</h3>
-                <p className="text-sm text-muted-foreground">Member since {new Date(user.created_at).toLocaleDateString()}</p>
+                <p className="text-sm text-muted-foreground">Member since {new Date(user.created_at || user.createdAt).toLocaleDateString()}</p>
           </div>
         </div>
           </CardContent>

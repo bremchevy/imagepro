@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useAuth } from '@/contexts/auth-context'
+import { useAuth } from '@/components/providers/auth-provider'
 
 export default function UpdatePassword() {
   const [password, setPassword] = useState('')
