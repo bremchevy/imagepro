@@ -49,7 +49,7 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'signup' }: AuthD
 
     try {
       if (view === 'signup') {
-        await signUp(email, password, firstName, lastName)
+        await signUp(email, password, `${firstName} ${lastName}`)
         onOpenChange(false)
         router.push('/dashboard')
       } else {
@@ -69,7 +69,7 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'signup' }: AuthD
     setLoading(true)
 
     try {
-      await signUp(email, password, firstName, lastName)
+      await signUp(email, password, `${firstName} ${lastName}`)
       setError('A new verification email has been sent.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')

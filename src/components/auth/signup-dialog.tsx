@@ -38,7 +38,7 @@ export function SignUpDialog({ open, onOpenChange }: SignUpDialogProps) {
     setLoading(true)
 
     try {
-      await signUp(email, password, firstName, lastName)
+      await signUp(email, password, `${firstName} ${lastName}`)
       setIsVerificationSent(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -52,7 +52,7 @@ export function SignUpDialog({ open, onOpenChange }: SignUpDialogProps) {
     setLoading(true)
 
     try {
-      await signUp(email, password, firstName, lastName)
+      await signUp(email, password, `${firstName} ${lastName}`)
       setError('A new verification email has been sent.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
