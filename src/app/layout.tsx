@@ -36,7 +36,7 @@ export default function RootLayout({
               <main className="flex-1">
                 {children}
               </main>
-              <Toaster position="top-center" richColors />
+              <Toaster position="bottom-right" richColors />
               
               {/* Footer */}
               <footer className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
