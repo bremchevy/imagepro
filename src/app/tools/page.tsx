@@ -1280,35 +1280,37 @@ export default function ToolsPage() {
                                   <Settings2 className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Output Format</span>
                                 </div>
-                                <select 
-                                  className="h-7 w-[120px] text-xs rounded-md border border-gray-200 px-2"
-                                  data-value="outputFormat"
-                                  defaultValue="png"
-                                >
-                                  <option value="png">PNG</option>
-                                  <option value="jpg">JPG</option>
-                                  <option value="jpeg">JPEG</option>
-                                  <option value="webp">WebP</option>
-                                  <option value="gif">GIF</option>
-                                  <option value="tiff">TIFF</option>
-                                  <option value="avif">AVIF</option>
-                                  <option value="heic">HEIC</option>
-                                </select>
+                                <Select defaultValue="png" data-value="outputFormat">
+                                  <SelectTrigger className="h-7 w-[120px] text-xs">
+                                    <SelectValue placeholder="PNG" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="png">PNG</SelectItem>
+                                    <SelectItem value="jpg">JPG</SelectItem>
+                                    <SelectItem value="jpeg">JPEG</SelectItem>
+                                    <SelectItem value="webp">WebP</SelectItem>
+                                    <SelectItem value="gif">GIF</SelectItem>
+                                    <SelectItem value="tiff">TIFF</SelectItem>
+                                    <SelectItem value="avif">AVIF</SelectItem>
+                                    <SelectItem value="heic">HEIC</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </div>
                               <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center gap-2">
                                   <Sliders className="h-4 w-4 text-gray-500" />
                                   <span className="text-xs font-medium text-gray-700">Quality</span>
                                 </div>
-                                <select 
-                                  className="h-7 w-[100px] text-xs rounded-md border border-gray-200 px-2"
-                                  data-value="quality"
-                                  defaultValue="high"
-                                >
-                                  <option value="low">Low</option>
-                                  <option value="medium">Medium</option>
-                                  <option value="high">High</option>
-                                </select>
+                                <Select defaultValue="high" data-value="quality">
+                                  <SelectTrigger className="h-7 w-[100px] text-xs">
+                                    <SelectValue placeholder="High" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="low">Low</SelectItem>
+                                    <SelectItem value="medium">Medium</SelectItem>
+                                    <SelectItem value="high">High</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </div>
                             </>
                           )}
