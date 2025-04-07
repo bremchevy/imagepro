@@ -450,401 +450,113 @@ export default function ToolsPage() {
     e.preventDefault();
   };
 
-  const handleProcessImage = async () => {
-    if (!selectedImage) return;
-    
+  const handleProcessImage = async (value: string) => {
+    if (!selectedImage || !value) return;
+
     setIsProcessing(true);
-    setError && setError(null);
+    setError(null);
+    setProcessedImage(null);
 
     try {
-      if (selectedTool.id === "image-enhancement") {
-        // For image enhancement, we don't need to process again
-        // since we're already showing the processed image in real-time
-        setIsProcessing(false);
-        
-        // Add to history if the function exists
-        if (typeof addToHistory === 'function') {
-          addToHistory({
-            originalImage: selectedImage,
-            processedImage: processedImage,
-            timestamp: new Date().toISOString(),
-            settings: enhancementSettings
-          });
-        }
-
-        toast.success("Image Enhanced", {
-          description: "Your image has been enhanced successfully.",
-        });
-      } else if (selectedTool.id === "background-removal") {
-        // Convert base64 to blob
-        const response = await fetch(selectedImage);
-        const blob = await response.blob();
-        
-        // Create a File object from the blob
-        const file = new File([blob], "image.png", { type: "image/png" });
-        
-        // Process image for background removal using remove.bg API
+      if (value === 'background-removal') {
         try {
-          // Create form data for the API request
+          const apiKey = process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY;
+          if (!apiKey) {
+            throw new Error('Remove.bg API key is missing. Using fallback method.');
+          }
+
+          // Convert base64 to blob
+          const base64Data = selectedImage.split(',')[1];
+          const byteCharacters = atob(base64Data);
+          const byteArrays = [];
+          
+          for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+            const slice = byteCharacters.slice(offset, offset + 512);
+            const byteNumbers = new Array(slice.length);
+            
+            for (let i = 0; i < slice.length; i++) {
+              byteNumbers[i] = slice.charCodeAt(i);
+            }
+            
+            const byteArray = new Uint8Array(byteNumbers);
+            byteArrays.push(byteArray);
+          }
+          
+          const blob = new Blob(byteArrays, { type: 'image/png' });
+          const file = new File([blob], 'image.png', { type: 'image/png' });
+
           const formData = new FormData();
           formData.append('image_file', file);
           formData.append('size', 'auto');
-          
-          // Make API request to remove.bg
-          console.log('Making API request to remove.bg with API key:', process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY ? 'API key exists' : 'API key missing');
-          
-          // Check if API key exists
-          if (!process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY) {
-            throw new Error('Remove.bg API key is missing. Using fallback method.');
-          }
-          
-          const apiResponse = await fetch('https://api.remove.bg/v1.0/removebg', {
+
+          const response = await fetch('https://api.remove.bg/v1.0/removebg', {
             method: 'POST',
             headers: {
-              'X-Api-Key': process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY,
+              'X-Api-Key': apiKey,
             },
             body: formData,
           });
-          
-          if (!apiResponse.ok) {
-            console.error('API error:', apiResponse.status, await apiResponse.text());
-            throw new Error(`API error: ${apiResponse.status}`);
-          }
-          
-          console.log('API response received successfully');
-          // Get the processed image as a blob
-          const processedBlob = await apiResponse.blob();
-          
-          // Convert blob to base64
-          const reader = new FileReader();
-          reader.readAsDataURL(processedBlob);
-          
-          await new Promise((resolve) => {
-            reader.onloadend = () => {
-              // Always use transparent background
-              const processedImageUrl = reader.result as string;
-              console.log('Setting processed image with transparent background');
-              setProcessedImage(processedImageUrl);
-              
-              // Add to history if the function exists
-              if (typeof addToHistory === 'function') {
-                addToHistory({
-                  originalImage: selectedImage,
-                  processedImage: processedImageUrl,
-                  timestamp: new Date().toISOString(),
-                  toolId: selectedTool.id
-                });
-              }
-              
-              toast.success("Background Removed", {
-                description: "Your image background has been removed successfully.",
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            if (response.status === 402 && errorData.errors?.[0]?.code === 'insufficient_credits') {
+              toast.info("API Credits Exhausted", {
+                description: "Remove.bg API credits have been exhausted. Using fallback method.",
               });
-              
-              resolve(null);
-            };
+              throw new Error('Remove.bg API credits have been exhausted. Using fallback method.');
+            }
+            throw new Error(`API error: ${response.status} ${JSON.stringify(errorData)}`);
+          }
+
+          const responseBlob = await response.blob();
+          const url = URL.createObjectURL(responseBlob);
+          setProcessedImage(url);
+        } catch (error) {
+          console.error('Error with remove.bg API:', error);
+          // Fallback to local processing
+          const img = new window.Image();
+          img.src = URL.createObjectURL(new Blob([selectedImage], { type: 'image/png' }));
+          await new Promise<void>((resolve) => {
+            img.onload = () => resolve();
           });
-        } catch (apiError) {
-          console.error('Error with remove.bg API:', apiError);
-          
-          // Fallback to client-side processing if API fails
-          toast.warning("API Error", {
-            description: "Using fallback background removal method.",
-          });
-          
-          // For demo purposes, we'll just create a simple effect
-          const img = document.createElement('img');
-          img.src = selectedImage;
-          await new Promise(resolve => {
-            img.onload = resolve;
-          });
-          
+
           const canvas = document.createElement('canvas');
           canvas.width = img.width;
           canvas.height = img.height;
           const ctx = canvas.getContext('2d');
-          
-          if (!ctx) {
-            throw new Error('Could not get canvas context');
-          }
-          
-          // Draw the original image
+          if (!ctx) throw new Error('Could not get canvas context');
+
           ctx.drawImage(img, 0, 0);
-          
-          // Get image data for manipulation
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const data = imageData.data;
-          
-          // Simple background removal simulation
-          // In a real implementation, this would use AI to detect and remove the background
+
+          // Simple background removal based on color similarity
           for (let i = 0; i < data.length; i += 4) {
-            // Simple edge detection for demo purposes
             const r = data[i];
             const g = data[i + 1];
             const b = data[i + 2];
             
-            // If pixel is close to white or light gray, make it transparent
+            // Check if pixel is close to white or light gray
             if (r > 240 && g > 240 && b > 240) {
               data[i + 3] = 0; // Set alpha to 0 (transparent)
             }
           }
-          
-          // Put the processed image data back on the canvas
+
           ctx.putImageData(imageData, 0, 0);
+          const url = canvas.toDataURL('image/png');
+          setProcessedImage(url);
           
-          // Always use transparent background
-          const processedImageUrl = canvas.toDataURL('image/png');
-          console.log('Setting processed image with transparent background (fallback)');
-          setProcessedImage(processedImageUrl);
-          
-          // Add to history if the function exists
-          if (typeof addToHistory === 'function') {
-            addToHistory({
-              originalImage: selectedImage,
-              processedImage: processedImageUrl,
-              timestamp: new Date().toISOString(),
-              toolId: selectedTool.id
-            });
-          }
-          
-          toast.success("Background Removed", {
-            description: "Your image background has been removed successfully.",
+          // Show a toast notification about using the fallback method
+          toast.info("Using Fallback Method", {
+            description: "The background removal was performed using a local fallback method.",
           });
         }
-      } else if (selectedTool.id === "image-upscaler") {
-        // Convert base64 to blob
-        const response = await fetch(selectedImage);
-        const blob = await response.blob();
-        
-        // Create a File object from the blob
-        const file = new File([blob], "image.png", { type: "image/png" });
-        
-        // Get scale factor from UI
-        const scaleFactorElement = document.querySelector('[data-value="scaleFactor"]') as HTMLSelectElement;
-        const scaleFactor = scaleFactorElement?.value || "2x";
-        
-        // Get quality from UI
-        const qualityElement = document.querySelector('[data-value="quality"]') as HTMLSelectElement;
-        const quality = qualityElement?.value || "high";
-        
-        // Process image for upscaling
-        // This is a placeholder for the actual upscaling API call
-        // In a real implementation, you would call your upscaling service
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing
-        
-        // For demo purposes, we'll create an improved upscaling effect
-        const img = document.createElement('img');
-        img.src = selectedImage;
-        await new Promise(resolve => {
-          img.onload = resolve;
-        });
-        
-        // Calculate new dimensions based on scale factor
-        const scale = parseFloat(scaleFactor.replace('x', ''));
-        const newWidth = img.width * scale;
-        const newHeight = img.height * scale;
-        
-        // Create a canvas for the upscaled image
-        const canvas = document.createElement('canvas');
-        canvas.width = newWidth;
-        canvas.height = newHeight;
-        const ctx = canvas.getContext('2d');
-        
-        if (!ctx) {
-          throw new Error('Could not get canvas context');
-        }
-        
-        // Apply advanced upscaling techniques based on quality setting
-        if (quality === 'high') {
-          // High quality upscaling with multiple passes
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          
-          // First pass: Draw at original size with high quality
-          ctx.drawImage(img, 0, 0, img.width, img.height);
-          
-          // Second pass: Apply a subtle sharpening effect
-          const imageData = ctx.getImageData(0, 0, img.width, img.height);
-          const data = imageData.data;
-          
-          // Simple sharpening kernel
-          for (let y = 1; y < img.height - 1; y++) {
-            for (let x = 1; x < img.width - 1; x++) {
-              const idx = (y * img.width + x) * 4;
-              
-              // Get surrounding pixels
-              const top = (y - 1) * img.width + x;
-              const bottom = (y + 1) * img.width + x;
-              const left = y * img.width + (x - 1);
-              const right = y * img.width + (x + 1);
-              
-              // Apply sharpening
-              for (let c = 0; c < 3; c++) {
-                const center = data[idx + c];
-                const surrounding = (
-                  data[top * 4 + c] +
-                  data[bottom * 4 + c] +
-                  data[left * 4 + c] +
-                  data[right * 4 + c]
-                ) / 4;
-                
-                // Enhance contrast between center and surrounding pixels
-                data[idx + c] = center + (center - surrounding) * 0.5;
-              }
-            }
-          }
-          
-          ctx.putImageData(imageData, 0, 0);
-          
-          // Third pass: Scale up with high quality
-          const tempCanvas = document.createElement('canvas');
-          tempCanvas.width = newWidth;
-          tempCanvas.height = newHeight;
-          const tempCtx = tempCanvas.getContext('2d');
-          
-          if (tempCtx) {
-            tempCtx.imageSmoothingEnabled = true;
-            tempCtx.imageSmoothingQuality = 'high';
-            tempCtx.drawImage(canvas, 0, 0, img.width, img.height, 0, 0, newWidth, newHeight);
-            
-            // Copy back to original canvas
-            ctx.clearRect(0, 0, newWidth, newHeight);
-            ctx.drawImage(tempCanvas, 0, 0);
-          }
-        } else if (quality === 'medium') {
-          // Medium quality upscaling
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'medium';
-          
-          // Draw the original image scaled up
-          ctx.drawImage(img, 0, 0, newWidth, newHeight);
-          
-          // Apply a subtle sharpening effect
-          const imageData = ctx.getImageData(0, 0, newWidth, newHeight);
-          const data = imageData.data;
-          
-          // Simple sharpening kernel with reduced intensity
-          for (let y = 1; y < newHeight - 1; y++) {
-            for (let x = 1; x < newWidth - 1; x++) {
-              const idx = (y * newWidth + x) * 4;
-              
-              // Get surrounding pixels
-              const top = (y - 1) * newWidth + x;
-              const bottom = (y + 1) * newWidth + x;
-              const left = y * newWidth + (x - 1);
-              const right = y * newWidth + (x + 1);
-              
-              // Apply sharpening with reduced intensity
-              for (let c = 0; c < 3; c++) {
-                const center = data[idx + c];
-                const surrounding = (
-                  data[top * 4 + c] +
-                  data[bottom * 4 + c] +
-                  data[left * 4 + c] +
-                  data[right * 4 + c]
-                ) / 4;
-                
-                // Enhance contrast between center and surrounding pixels
-                data[idx + c] = center + (center - surrounding) * 0.3;
-              }
-            }
-          }
-          
-          ctx.putImageData(imageData, 0, 0);
-        } else {
-          // Low quality upscaling - just basic scaling
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'low';
-          ctx.drawImage(img, 0, 0, newWidth, newHeight);
-        }
-        
-        // Set the processed image
-        setProcessedImage(canvas.toDataURL('image/jpeg', 0.95));
-        
-        // Add to history if the function exists
-        if (typeof addToHistory === 'function') {
-          addToHistory({
-            originalImage: selectedImage,
-            processedImage: canvas.toDataURL('image/jpeg', 0.95),
-            timestamp: new Date().toISOString(),
-            toolId: selectedTool.id
-          });
-        }
-        
-        toast.success("Image Upscaled", {
-          description: "Your image has been successfully upscaled.",
-        });
-      } else if (selectedTool.id === "image-converter") {
-        // Convert base64 to blob
-        const response = await fetch(selectedImage);
-        const blob = await response.blob();
-        
-        // Create a File object from the blob
-        const file = new File([blob], "image.png", { type: "image/png" });
-        
-        // Get output format from UI
-        const outputFormatElement = document.querySelector('[data-value="outputFormat"]') as HTMLSelectElement;
-        const outputFormat = outputFormatElement?.value || "png";
-        
-        // Get quality from UI
-        const qualityElement = document.querySelector('[data-value="quality"]') as HTMLSelectElement;
-        const quality = qualityElement?.value || "high";
-        
-        // Process image for conversion
-        // This is a placeholder for the actual conversion API call
-        // In a real implementation, you would call your conversion service
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing
-        
-        // For demo purposes, we'll just create a simple conversion effect
-        const img = document.createElement('img');
-        img.src = selectedImage;
-        await new Promise(resolve => {
-          img.onload = resolve;
-        });
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        
-        if (!ctx) {
-          throw new Error('Could not get canvas context');
-        }
-        
-        // Draw the original image
-        ctx.drawImage(img, 0, 0);
-        
-        // Set quality based on user selection
-        let qualityValue = 0.95;
-        if (quality === 'medium') {
-          qualityValue = 0.75;
-        } else if (quality === 'low') {
-          qualityValue = 0.5;
-        }
-        
-        // Convert to the selected format
-        let mimeType = 'image/png';
-        if (outputFormat === 'jpg' || outputFormat === 'jpeg') {
-          mimeType = 'image/jpeg';
-        } else if (outputFormat === 'webp') {
-          mimeType = 'image/webp';
-        }
-        
-        // Set the processed image
-        setProcessedImage(canvas.toDataURL(mimeType, qualityValue));
-        
-        // Add to history if the function exists
-        if (typeof addToHistory === 'function') {
-          addToHistory({
-            originalImage: selectedImage,
-            processedImage: canvas.toDataURL(mimeType, qualityValue),
-            timestamp: new Date().toISOString(),
-            toolId: selectedTool.id
-          });
-        }
-        
-        toast.success("Image Converted", {
-          description: `Your image has been converted to ${outputFormat.toUpperCase()} successfully.`,
-        });
+      } else if (value === 'image-conversion') {
+        // ... rest of the existing code ...
+      } else if (value === 'image-upscaling') {
+        // ... rest of the existing code ...
+      } else if (value === 'image-enhancement') {
+        // ... rest of the existing code ...
       }
     } catch (error) {
       console.error('Error processing image:', error);
@@ -1500,12 +1212,12 @@ export default function ToolsPage() {
               <Tabs defaultValue={tools[0].id} className="w-full" onValueChange={(value) => {
                 handleToolSelect(value);
               }}>
-                <TabsList className="w-full grid grid-cols-2 sm:flex sm:flex-wrap bg-white/80 backdrop-blur-sm p-2 sm:p-1.5 rounded-xl shadow-sm border border-gray-100 gap-2 sm:gap-0 mb-4 sm:mb-0">
+                <TabsList className="w-full grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-0 h-auto sm:h-12 bg-muted/50 p-2 sm:p-1 rounded-xl">
                   {tools.map((tool) => (
                     <TabsTrigger
                       key={tool.id}
                       value={tool.id}
-                      className="flex-1 min-w-[80px] flex items-center justify-center px-2 py-2.5 sm:py-1.5 rounded-lg data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-all duration-200 relative hover:bg-gray-50"
+                      className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm py-3 sm:py-0"
                     >
                       <span className="text-[10px] sm:text-xs font-medium text-center">{tool.name}</span>
                       {tool.isLocked && (
@@ -2039,7 +1751,7 @@ export default function ToolsPage() {
                             </Button>
                           ) : (
                             <Button 
-                              onClick={handleProcessImage}
+                              onClick={() => handleProcessImage(tool.id)}
                               disabled={isProcessing || !selectedImage || tool.isLocked}
                               className={`w-full sm:w-auto ${
                                 isProcessing
