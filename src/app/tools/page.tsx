@@ -1148,7 +1148,7 @@ export default function ToolsPage() {
           {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Left Side - Preview Area */}
-            <div className="relative h-[400px] lg:h-[500px] lg:sticky lg:top-4">
+            <div className="relative h-[300px] sm:h-[400px] lg:h-[500px] lg:sticky lg:top-4">
               <Card 
                 className={`h-full flex items-center justify-center border-2 border-dashed border-gray-200 hover:border-primary/50 transition-all duration-300 ${showComparison ? 'cursor-default' : 'cursor-pointer'} bg-white shadow-sm hover:shadow-md`}
                 onClick={(e) => {
@@ -1496,11 +1496,11 @@ export default function ToolsPage() {
             </div>
 
             {/* Right Side - Tool Selection */}
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-3 sm:space-y-4 mt-6 sm:mt-0">
               <Tabs defaultValue={tools[0].id} className="w-full" onValueChange={(value) => {
                 handleToolSelect(value);
               }}>
-                <TabsList className="w-full flex flex-wrap bg-white/80 backdrop-blur-sm p-1.5 rounded-xl shadow-sm border border-gray-100">
+                <TabsList className="w-full grid grid-cols-2 sm:flex sm:flex-wrap bg-white/80 backdrop-blur-sm p-1.5 rounded-xl shadow-sm border border-gray-100">
                   {tools.map((tool) => (
                     <TabsTrigger
                       key={tool.id}

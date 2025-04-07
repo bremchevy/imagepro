@@ -271,7 +271,7 @@ export function Hero() {
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
                     <motion.div 
-                      className="text-center p-8 relative"
+                      className="text-center p-4 sm:p-8 relative"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8 }}
@@ -316,7 +316,7 @@ export function Hero() {
                         transition={{ duration: 0.3 }}
                       >
                         <motion.div 
-                          className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 mx-auto mb-6 relative overflow-hidden"
+                          className="flex h-16 sm:h-24 w-16 sm:w-24 items-center justify-center rounded-full bg-primary/10 mx-auto mb-4 sm:mb-6 relative overflow-hidden"
                           animate={{
                             scale: [1, 1.05, 1],
                             rotate: [0, 5, -5, 0],
@@ -354,9 +354,9 @@ export function Hero() {
                             }}
                           />
                           <div className="relative z-10">
-                            <ImageIcon className="h-12 w-12 text-primary" />
+                            <ImageIcon className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
                             <motion.div
-                              className="absolute -top-1 -right-1 h-4 w-4 bg-primary rounded-full"
+                              className="absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 bg-primary rounded-full"
                               animate={{
                                 scale: [1, 1.2, 1],
                                 opacity: [0.8, 1, 0.8],
@@ -376,12 +376,12 @@ export function Hero() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.2 }}
-                        className="px-4 sm:px-8"
+                        className="px-2 sm:px-8"
                       >
-                        <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-2 sm:mb-3 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                        <h3 className="text-lg sm:text-2xl font-semibold text-foreground mb-1 sm:mb-3 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                           Quick Image Upscale
                         </h3>
-                        <p className="text-sm sm:text-base text-muted-foreground max-w-sm mx-auto mb-4 sm:mb-6">
+                        <p className="text-xs sm:text-base text-muted-foreground max-w-sm mx-auto mb-3 sm:mb-6">
                           Upload your image and watch it transform into a high-resolution masterpiece
                         </p>
                         
@@ -394,10 +394,10 @@ export function Hero() {
                           <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 rounded-full blur-lg opacity-50" />
                           <Button 
                             size="lg" 
-                            className="w-full sm:w-auto relative bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white px-6 sm:px-8 py-5 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 group"
+                            className="w-full sm:w-auto relative bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white px-4 sm:px-8 py-3 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 group text-sm sm:text-base"
                           >
                             <span className="flex items-center justify-center">
-                              <Upload className="mr-2 h-5 w-5" />
+                              <Upload className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                               Upload Image
                             </span>
                           </Button>
@@ -405,21 +405,21 @@ export function Hero() {
 
                         {/* Features List */}
                         <motion.div 
-                          className="mt-6 sm:mt-8 flex flex-wrap justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground"
+                          className="mt-4 sm:mt-8 flex flex-wrap justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ duration: 0.8, delay: 0.4 }}
                         >
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="h-4 w-4 text-primary" />
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
                             <span>AI-Powered</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <ArrowRight className="h-4 w-4 text-primary" />
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
                             <span>Instant Results</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Maximize2 className="h-4 w-4 text-primary" />
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <Maximize2 className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
                             <span>High Resolution</span>
                           </div>
                         </motion.div>
