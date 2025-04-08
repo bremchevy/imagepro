@@ -1738,7 +1738,7 @@ export default function ToolsPage() {
                         {/* Action Buttons */}
                         <div className="flex gap-2">
                           {tool.id === "image-enhancement" ? (
-                            <Button 
+                          <Button 
                               className={`w-auto bg-gradient-to-r ${tool.gradient} hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm py-1.5`}
                               onClick={handleDownload}
                               disabled={!processedImage || isProcessing || tool.isLocked}
