@@ -1738,8 +1738,8 @@ export default function ToolsPage() {
                         {/* Action Buttons */}
                         <div className="flex gap-2">
                           {tool.id === "image-enhancement" ? (
-                          <Button 
-                              className={`flex-1 bg-gradient-to-r ${tool.gradient} hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm py-1.5`}
+                            <Button 
+                              className={`w-auto bg-gradient-to-r ${tool.gradient} hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm py-1.5`}
                               onClick={handleDownload}
                               disabled={!processedImage || isProcessing || tool.isLocked}
                             >
@@ -1780,16 +1780,6 @@ export default function ToolsPage() {
                               )}
                             </Button>
                           )}
-                          <div className="flex gap-1">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="px-2"
-                              onClick={() => setShowHistory(true)}
-                            >
-                              <History className="h-4 w-4" />
-                            </Button>
-                          </div>
                         </div>
                       </div>
                     </Card>

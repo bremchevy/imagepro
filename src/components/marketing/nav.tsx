@@ -166,28 +166,28 @@ export function MarketingNav() {
                       </div>
                       <div className="flex-1 overflow-y-auto">
                         <div className="flex flex-col space-y-1 p-4">
-                          <NavLinks />
+                      <NavLinks />
                         </div>
                       </div>
                       {!user ? (
                         <div className="p-4 border-t space-y-2 bg-primary/5">
-                          <Link 
-                            href="/auth/signin" 
+                        <Link 
+                          href="/auth/signin" 
                             className="flex items-center justify-center w-full text-sm font-medium transition-all duration-200 rounded-lg hover:bg-primary/10 px-4 py-2 border border-primary/20"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            Log in
-                          </Link>
-                          <Button 
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Log in
+                        </Link>
+                        <Button 
                             className="w-full text-sm font-medium transition-all duration-200 rounded-lg hover:shadow-lg"
-                            onClick={() => {
-                              setMobileMenuOpen(false);
-                              router.push('/auth/signup');
-                            }}
-                          >
-                            Get Started
-                          </Button>
-                        </div>
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            router.push('/auth/signup');
+                          }}
+                        >
+                          Get Started
+                        </Button>
+                      </div>
                       ) : (
                         <div className="p-4 border-t space-y-2 bg-primary/5">
                           <div className="flex items-center gap-3 mb-4">
@@ -339,15 +339,15 @@ export function MarketingNav() {
                 <div className="hidden md:block">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Avatar className="h-8 w-8 hover:opacity-80 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all duration-200">
-                        {profileLoading ? (
+                    <Avatar className="h-8 w-8 hover:opacity-80 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all duration-200">
+                      {profileLoading ? (
                           <div className="flex items-center justify-center h-full w-full">
                             <Loader2 className="h-4 w-4 animate-spin" />
                           </div>
                         ) : (
                           <>
                             <AvatarImage src={profile?.avatar_url || ''} />
-                            <AvatarFallback className="bg-primary/10 text-primary">
+                          <AvatarFallback className="bg-primary/10 text-primary">
                               {typedUser?.email ? typedUser.email.charAt(0).toUpperCase() : 'U'}
                             </AvatarFallback>
                           </>
@@ -370,41 +370,41 @@ export function MarketingNav() {
                             </>
                           )}
                         </Avatar>
-                        <div className="flex flex-col space-y-1">
+                      <div className="flex flex-col space-y-1">
                           <p className="text-sm font-medium leading-none">{typedUser?.email || 'User'}</p>
-                          <p className="text-xs leading-none text-muted-foreground">
-                            {profile?.full_name || 'User'}
-                          </p>
-                        </div>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {profile?.full_name || 'User'}
+                        </p>
                       </div>
-                      <DropdownMenuSeparator />
+                    </div>
+                    <DropdownMenuSeparator />
                       <div className="py-1">
                         <DropdownMenuItem onClick={handleUserManagementClick} className="px-3 py-2 cursor-pointer">
-                          <User className="mr-2 h-4 w-4" />
-                          User Management
-                        </DropdownMenuItem>
+                        <User className="mr-2 h-4 w-4" />
+                        User Management
+                      </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => router.push('/dashboard/settings')} className="px-3 py-2 cursor-pointer">
-                          <Settings className="mr-2 h-4 w-4" />
-                          Settings
-                        </DropdownMenuItem>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </DropdownMenuItem>
                       </div>
-                      <DropdownMenuSeparator />
+                    <DropdownMenuSeparator />
                       <div className="py-1">
-                        <DropdownMenuItem
-                          onClick={async () => {
-                            await signOut();
-                            router.push('/');
-                          }}
+                      <DropdownMenuItem
+                        onClick={async () => {
+                          await signOut();
+                          router.push('/');
+                        }}
                           className="px-3 py-2 cursor-pointer text-red-600 focus:text-red-600"
-                        >
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Sign Out
-                        </DropdownMenuItem>
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                      </DropdownMenuItem>
                       </div>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-              </div>
+                </div>
             )}
           </div>
         </div>
